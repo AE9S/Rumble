@@ -60,22 +60,17 @@ namespace Rumble
         DTMFCommandStates MyState;
         string ConfigFilePath = @"C:\Users\kb\Desktop\";
 
-        public delegate void SpeakItDelegate(string text, int device);
-        SpeakItDelegate MySpeakDelegate = new SpeakItDelegate(SpeakIt);
-
         public delegate void MumbleMuteDelegate();
         MumbleMuteDelegate MyMuteDelegate = new MumbleMuteDelegate(MumbleMuteToggle);
-
 
         public Form1()
         {
             InitializeComponent();
             SetText("starting...");
-            MySpeakDelegate("Welcome to Rumble!", DeviceNo);
-
             DeviceNo = 4;
             micIn.DeviceNumber = DeviceNo;
             MyState = DTMFCommandStates.ignore;
+            SpeakIt("Welcome to Rumble!");
             LoadConfig("0");            
             analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
             analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
@@ -375,15 +370,11 @@ namespace Rumble
             {
                 string mumbleURI = BuildMumbleURI(matchingConfig);
                 LaunchMumble(mumbleURI);
-                MySpeakDelegate(
-                    string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber), 
-                    DeviceNo);
+                SpeakIt(string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber));
             } // if
             else
             {
-                MySpeakDelegate(
-                    "requested server and channel pair could not be found in the current config.", 
-                    DeviceNo);
+                SpeakIt("requested server and channel pair could not be found in the current config.");
             } // else
             
         } // Change channel
@@ -394,9 +385,7 @@ namespace Rumble
 
             // TODO: change setting
 
-            MySpeakDelegate(
-                string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue), 
-                DeviceNo);
+            SpeakIt(string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
 
         } // ChangeAdminSetting
 
@@ -528,7 +517,9 @@ namespace Rumble
         private void Disconnect()
         {
             LaunchMumble(ResetURI);
-            MySpeakDelegate("client disconnected", DeviceNo);
+            //SpeakIt("client disconnected");
+            PlaySound(@"C:\Users\kb\Desktop\wavs\clientDisconnected.wav");
+            
         } // Disconnect
 
         private void ResetDTMFCommandState()
@@ -567,9 +558,7 @@ namespace Rumble
                 MyConfigs.Add(thisRumbleConfigLine);
             } // while
 
-            MySpeakDelegate(
-                string.Format("Configuration file number {0} has been loaded.", ConfigNumber),
-                DeviceNo);
+            SpeakIt(string.Format("Configuration file number {0} has been loaded.", ConfigNumber));
 
         } // LoadConfig
         
@@ -585,28 +574,29 @@ namespace Rumble
 
             waveOut.Init(waveReader);
             waveOut.Play();
+            Thread.Sleep(2500);
         } // PlaySound
 
-        private static void SpeakIt(string TextToSpeak, int DeviceNumber)
+        private void SpeakIt(string TextToSpeak)
         {
             //SetText(string.Format("speaking text {0}", TextToSpeak));
             IWaveProvider provider = null;
             var stream = new MemoryStream();
             using (var synth = new SpeechSynthesizer())
             {
-                synth.SetOutputToAudioStream(stream,
-                    new SpeechAudioFormatInfo(44100, AudioBitsPerSample.Sixteen, AudioChannel.Mono));
+                //synth.SetOutputToAudioStream(stream,
+                    //new SpeechAudioFormatInfo(44100, AudioBitsPerSample.Eight, AudioChannel.Mono));
+                
+                synth.SetOutputToWaveStream(stream);
+                synth.Rate = -1;
                 synth.Speak(TextToSpeak);
-
                 stream.Seek(0, SeekOrigin.Begin);
-                provider = new RawSourceWaveStream(stream, new WaveFormat(44100, 16, 1));
+                provider = new RawSourceWaveStream(stream, new WaveFormat(22000, 16, 1));
             }
             var waveOut = new WaveOut();
-            waveOut.DeviceNumber = DeviceNumber;
+            waveOut.DeviceNumber = DeviceNo;
             waveOut.Init(provider);
-            Thread.Sleep(100);
             waveOut.Play();
-            Thread.Sleep(100);
         } // SpeakIt
         
         private string BuildMumbleURI(RumbleConfigLine ConfigLine)
