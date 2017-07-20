@@ -17,7 +17,6 @@ using NAudio.CoreAudioApi;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-
 namespace Rumble
 {
 
@@ -61,20 +60,18 @@ namespace Rumble
         DTMFCommandStates MyState;
         string ConfigFilePath = @"C:\Users\kb\Desktop\";
 
-        // import the function in your class
-        [DllImport("User32.dll")]
-        static extern int SetForegroundWindow(IntPtr point);
-        [DllImport("user32.dll")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-        public const uint WM_KEYDOWN = 0x0100;
+        public delegate void SpeakItDelegate(string text, int device);
+        SpeakItDelegate MySpeakDelegate = new SpeakItDelegate(SpeakIt);
 
+        public delegate void MumbleMuteDelegate();
+        MumbleMuteDelegate MyMuteDelegate = new MumbleMuteDelegate(MumbleMuteToggle);
 
 
         public Form1()
         {
             InitializeComponent();
             SetText("starting...");
-            SpeakIt("Welcome to Rumble!");
+            MySpeakDelegate("Welcome to Rumble!", DeviceNo);
 
             DeviceNo = 4;
             micIn.DeviceNumber = DeviceNo;
@@ -290,7 +287,7 @@ namespace Rumble
                 } // else
             } // if
 
-
+            Thread.Sleep(250);
             ProcessDTMFCommand(FinalDTMFCommand, MyState);
             SetText(currentDTMFChar + "-" + CurrentDTMFCommand);
         } // Analyzer_DtmfToneStopped
@@ -378,11 +375,15 @@ namespace Rumble
             {
                 string mumbleURI = BuildMumbleURI(matchingConfig);
                 LaunchMumble(mumbleURI);
-                SpeakIt(string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber));
+                MySpeakDelegate(
+                    string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber), 
+                    DeviceNo);
             } // if
             else
             {
-                SpeakIt("requested server and channel pair could not be found in the current config.");
+                MySpeakDelegate(
+                    "requested server and channel pair could not be found in the current config.", 
+                    DeviceNo);
             } // else
             
         } // Change channel
@@ -393,7 +394,9 @@ namespace Rumble
 
             // TODO: change setting
 
-            SpeakIt(string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
+            MySpeakDelegate(
+                string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue), 
+                DeviceNo);
 
         } // ChangeAdminSetting
 
@@ -525,7 +528,7 @@ namespace Rumble
         private void Disconnect()
         {
             LaunchMumble(ResetURI);
-            SpeakIt("client disconnected");
+            MySpeakDelegate("client disconnected", DeviceNo);
         } // Disconnect
 
         private void ResetDTMFCommandState()
@@ -564,7 +567,10 @@ namespace Rumble
                 MyConfigs.Add(thisRumbleConfigLine);
             } // while
 
-            SpeakIt(string.Format("Configuration file number {0} has been loaded.", ConfigNumber));
+            MySpeakDelegate(
+                string.Format("Configuration file number {0} has been loaded.", ConfigNumber),
+                DeviceNo);
+
         } // LoadConfig
         
         private void PlaySound(string FileToPlay)
@@ -581,10 +587,9 @@ namespace Rumble
             waveOut.Play();
         } // PlaySound
 
-        delegate void SpeakItCallback(string text);
-        private void SpeakIt(string TextToSpeak)
+        private static void SpeakIt(string TextToSpeak, int DeviceNumber)
         {
-            SetText(string.Format("speaking text {0}", TextToSpeak));
+            //SetText(string.Format("speaking text {0}", TextToSpeak));
             IWaveProvider provider = null;
             var stream = new MemoryStream();
             using (var synth = new SpeechSynthesizer())
@@ -597,13 +602,13 @@ namespace Rumble
                 provider = new RawSourceWaveStream(stream, new WaveFormat(44100, 16, 1));
             }
             var waveOut = new WaveOut();
-            waveOut.DeviceNumber = DeviceNo;
+            waveOut.DeviceNumber = DeviceNumber;
             waveOut.Init(provider);
-            Thread.Sleep(1000);
+            Thread.Sleep(100);
             waveOut.Play();
-            Thread.Sleep(1000);
+            Thread.Sleep(100);
         } // SpeakIt
-
+        
         private string BuildMumbleURI(RumbleConfigLine ConfigLine)
         {
             string MumbleURI = string.Empty;
@@ -640,25 +645,15 @@ namespace Rumble
 
         } // BuildMumbleURI
 
-        private void MumbleMuteToggle()
+        private static void MumbleMuteToggle()
         {
-           Process p = Process.GetProcessesByName("mumble").FirstOrDefault();
-            if(p != null)
-            {
-                IntPtr h = p.MainWindowHandle;
-                SetForegroundWindow(h);
-                
-                Thread.Sleep(100);
-                SendKeys.SendWait("q");
-                Thread.Sleep(100);
-                SendKeys.Flush();
-                Thread.Sleep(100);
-            } // if
         } // MumbleMuteToggle
 
         private void cmdMute_Click(object sender, EventArgs e)
         {
-            MumbleMuteToggle();
+            //MumbleMuteToggle();
+            MyMuteDelegate();
         }
+
     } // public partial class Form1 : Form
 } // namespace Rumble
