@@ -34,13 +34,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DtmfDetection">
-      <HintPath>..\..\..\..\..\Source\Repos\DtmfDetection\DtmfDetection.NAudio\bin\Debug\DtmfDetection.dll</HintPath>
+      <HintPath>..\..\..\..\Documents\Visual Studio 2017\Projects\Rumble\Rumble\bin\Debug\DtmfDetection.dll</HintPath>
     </Reference>
     <Reference Include="DtmfDetection.NAudio">
-      <HintPath>..\..\..\..\..\Source\Repos\DtmfDetection\DtmfDetection.NAudio\bin\Debug\DtmfDetection.NAudio.dll</HintPath>
+      <HintPath>..\..\..\..\Documents\Visual Studio 2017\Projects\Rumble\Rumble\bin\Debug\DtmfDetection.NAudio.dll</HintPath>
     </Reference>
     <Reference Include="NAudio">
-      <HintPath>..\..\..\..\..\Source\Repos\DtmfDetection\DtmfDetection.NAudio\bin\Debug\NAudio.dll</HintPath>
+      <HintPath>..\..\..\..\Documents\Visual Studio 2017\Projects\Rumble\Rumble\bin\Debug\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
