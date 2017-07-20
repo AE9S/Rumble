@@ -60,7 +60,7 @@ namespace Rumble
         } // DTMFCommandStates
         DTMFCommandStates MyState;
         string ConfigFilePath = @"C:\Users\kb\Desktop\";
-        string MumbleExePath = @"c:\program files\mumble\";
+        string MumbleExePath = Environment.ExpandEnvironmentVariables(@"%PROGRAMFILES%\mumble\mumble.exe");
         bool IsMuted = false;
         bool IsDeaf = false;
 
@@ -346,7 +346,7 @@ namespace Rumble
 
             if (ChannelNumber == "0")
             {
-                IssueCommand(ResetURI);
+                LaunchMumble(ResetURI);
             } // if
 
             RumbleConfigLine matchingConfig = new RumbleConfigLine();
@@ -368,7 +368,7 @@ namespace Rumble
             if (!string.IsNullOrEmpty(matchingConfig.ServerURL))
             {
                 string mumbleURI = BuildMumbleURI(matchingConfig);
-                IssueCommand(mumbleURI);
+                LaunchMumble(mumbleURI);
                 SpeakIt(string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber));
             } // if
             else
@@ -388,7 +388,7 @@ namespace Rumble
 
         } // ChangeAdminSetting
 
-        private void IssueCommand(string CommandText)
+        private void LaunchMumble(string CommandText)
         {
             // start new process
             currentMumbleProcess = new System.Diagnostics.Process();
@@ -398,7 +398,20 @@ namespace Rumble
 
             currentMumbleProcess.StartInfo = currentMumbleProcessStartInfo;
             currentMumbleProcess.Start();
-            Thread.Sleep(1000);
+            Thread.Sleep(1000);            
+        } // LaunchMumbleCommand
+
+        private void IssueCommand(string CommandText, string Arguments)
+        {
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = 
+                new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            //startInfo.FileName = "cmd.exe";
+            startInfo.FileName = CommandText;
+            startInfo.Arguments = Arguments;
+            process.StartInfo = startInfo;
+            process.Start();
         } // IssueCommand
 
         private string GetDTMFShortHand(string DTMFKey)
@@ -515,7 +528,7 @@ namespace Rumble
 
         private void Disconnect()
         {
-            IssueCommand(ResetURI);
+            LaunchMumble(ResetURI);
             //SpeakIt("client disconnected");
             PlaySound(@"C:\Users\kb\Desktop\wavs\clientDisconnected.wav");
 
@@ -636,25 +649,25 @@ namespace Rumble
 
         private void MumbleMute()
         {
-            IssueCommand(string.Format("{0}mumble rpc mute", MumbleExePath));
+            IssueCommand(@MumbleExePath, @"rpc mute");            
             IsMuted = true;
         } // MumbleMute
 
         private void MumbleUnmute()
         {
-            IssueCommand(string.Format("{0}mumble rpc unmute", MumbleExePath));
+            IssueCommand(@MumbleExePath, @"rpc unmute");
             IsMuted = false;
         } // MumbleUnmute
 
         private void MumbleDeaf()
         {
-            IssueCommand(string.Format("{0}mumble rpc deaf", MumbleExePath));
+            IssueCommand(@MumbleExePath, @"rpc deaf");
             IsDeaf = true;
         } // MumbleDeaf
 
         private void MumbleUndeaf()
         {
-            IssueCommand(string.Format("{0}mumble rpc undeaf", MumbleExePath));
+            IssueCommand(@MumbleExePath, @"rpc undeaf");
             IsDeaf = false;
         } // MumbleUndeaf
 
