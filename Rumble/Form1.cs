@@ -108,6 +108,10 @@ namespace Rumble
                     CurrentDTMFCommand = currentDTMFChar;
                     fallThrough = true;
                 } // if
+                else
+                {
+                    ResetDTMFCommandState();
+                } // else
             } // if
 
 
@@ -280,10 +284,8 @@ namespace Rumble
                 } // else
             } // if
 
-            Thread.Sleep(250);
             ProcessDTMFCommand(FinalDTMFCommand, MyState);
             SetText(currentDTMFChar + "-" + CurrentDTMFCommand);
-            MumbleUnmute();
         } // Analyzer_DtmfToneStopped
 
         private void ProcessDTMFCommand(string DTMFCommand, DTMFCommandStates CommandState)
@@ -336,8 +338,8 @@ namespace Rumble
                     default:
                         break;
                 } // switch
-
             } // if
+            
         } // ProcessDTMFCommand
 
         private void ChangeChannel(string ServerNumber, string ChannelNumber)
@@ -539,6 +541,7 @@ namespace Rumble
             CurrentDTMFCommand = string.Empty;
             FinalDTMFCommand = string.Empty;
             MyState = DTMFCommandStates.ignore;
+            MumbleUnmute();
         } // ResetDTMFCommandState
 
         private void LoadConfig(string ConfigNumber)
