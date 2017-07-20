@@ -88,9 +88,9 @@ namespace Rumble
         private void Analyzer_DtmfToneStarted(DtmfToneStart obj)
         {
             SetText(string.Empty);
-            
+
             // TODO: Block sound going to Mumble client
-            
+            MumbleMute();
             //Console.WriteLine(GetDTMFShortHand(obj.DtmfTone.Key.ToString()) + " key start");
         } // Analyzer_DtmfToneStarted
 
@@ -285,6 +285,7 @@ namespace Rumble
             Thread.Sleep(250);
             ProcessDTMFCommand(FinalDTMFCommand, MyState);
             SetText(currentDTMFChar + "-" + CurrentDTMFCommand);
+            MumbleUnmute();
         } // Analyzer_DtmfToneStopped
 
         private void ProcessDTMFCommand(string DTMFCommand, DTMFCommandStates CommandState)
