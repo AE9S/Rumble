@@ -41,8 +41,9 @@ namespace Rumble
         System.Diagnostics.ProcessStartInfo currentMumbleProcessStartInfo;
         string ResetURI = @"mumble://noUser@0.0.0.0:0/";
         int DeviceNo;
-        List<RumbleConfigLine> MyConfigs = new List<RumbleConfigLine>();        
-        enum DTMFCommandStates {
+        List<RumbleConfigLine> MyConfigs = new List<RumbleConfigLine>();
+        enum DTMFCommandStates
+        {
             ignore,
             isCommand,
             isDisconnect,
@@ -59,20 +60,19 @@ namespace Rumble
         } // DTMFCommandStates
         DTMFCommandStates MyState;
         string ConfigFilePath = @"C:\Users\kb\Desktop\";
-
-        public delegate void MumbleMuteDelegate();
-        MumbleMuteDelegate MyMuteDelegate = new MumbleMuteDelegate(MumbleMuteToggle);
+        string MumbleExePath = @"c:\program files\mumble\";
+        bool IsMuted = false;
+        bool IsDeaf = false;
 
         public Form1()
         {
             InitializeComponent();
             SetText("starting...");
             DeviceNo = 4;
-            //DeviceNo = 6;
             micIn.DeviceNumber = DeviceNo;
             MyState = DTMFCommandStates.ignore;
             SpeakIt("Welcome to Rumble!");
-            LoadConfig("0");            
+            LoadConfig("0");
             analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
             analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
             analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
@@ -85,14 +85,11 @@ namespace Rumble
             cmdStop.Enabled = true;
             analyzer.StartCapturing();
         } // cmdListen_Click
-        
+
         private void Analyzer_DtmfToneStarted(DtmfToneStart obj)
         {
             SetText(string.Empty);
-
-            // TODO: Block sound going to Mumble client
             MumbleMute();
-            //Console.WriteLine(GetDTMFShortHand(obj.DtmfTone.Key.ToString()) + " key start");
         } // Analyzer_DtmfToneStarted
 
         private void Analyzer_DtmfToneStopped(DtmfToneEnd obj)
@@ -142,7 +139,7 @@ namespace Rumble
 
             // GET THIRD CHARACTER
             // command has started and is not a disconnect, get 3rd char
-            if (MyState == DTMFCommandStates.isNotDisconnect && fallThrough==false)
+            if (MyState == DTMFCommandStates.isNotDisconnect && fallThrough == false)
             {
                 // if 3rd char is * this is a config change
                 if (currentDTMFChar == @"*")
@@ -168,7 +165,7 @@ namespace Rumble
 
             // GET FOURTH CHARACTER
             //command has started, and is either Admin Setting or Channel Change, get 4th char
-            if (MyState==DTMFCommandStates.isAdminSettingORChannelChange && fallThrough==false)
+            if (MyState == DTMFCommandStates.isAdminSettingORChannelChange && fallThrough == false)
             {
                 // if 4th char is # this is an Admin Setting change
                 if (currentDTMFChar == @"#")
@@ -194,7 +191,7 @@ namespace Rumble
 
             // GET FIFTH CHARACTER
             //command has started, and is Admin Setting, get 5th char
-            if (MyState == DTMFCommandStates.isAdminSetting && fallThrough==false)
+            if (MyState == DTMFCommandStates.isAdminSetting && fallThrough == false)
             {
                 // Admin Setting change, 5th char is 0-9
                 if (IsNumeric(currentDTMFChar))
@@ -209,7 +206,7 @@ namespace Rumble
                     ResetDTMFCommandState();
                 } // else
             } // if
-            
+
             //command has started, and is Channel Change, get 5th char
             if (MyState == DTMFCommandStates.isChangeChannel && fallThrough == false)
             {
@@ -248,7 +245,7 @@ namespace Rumble
             } // if
 
             // command has started, is Channel Change, get 6th char
-            if (MyState == DTMFCommandStates.isChannelChangeNoChannelNumber && fallThrough==false)
+            if (MyState == DTMFCommandStates.isChannelChangeNoChannelNumber && fallThrough == false)
             {
                 // Channel Change, 6th char is 0-9
                 if (IsNumeric(currentDTMFChar))
@@ -266,7 +263,7 @@ namespace Rumble
 
 
             //GET SEVENTH CHARACTER
-            if (MyState == DTMFCommandStates.isChannelChangeNotFinal && fallThrough==false)
+            if (MyState == DTMFCommandStates.isChannelChangeNotFinal && fallThrough == false)
             {
                 // Channel Change, 7th char is *
                 if (currentDTMFChar == @"*")
@@ -349,7 +346,7 @@ namespace Rumble
 
             if (ChannelNumber == "0")
             {
-                LaunchMumble(ResetURI);
+                IssueCommand(ResetURI);
             } // if
 
             RumbleConfigLine matchingConfig = new RumbleConfigLine();
@@ -371,14 +368,14 @@ namespace Rumble
             if (!string.IsNullOrEmpty(matchingConfig.ServerURL))
             {
                 string mumbleURI = BuildMumbleURI(matchingConfig);
-                LaunchMumble(mumbleURI);
+                IssueCommand(mumbleURI);
                 SpeakIt(string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber));
             } // if
             else
             {
                 SpeakIt("requested server and channel pair could not be found in the current config.");
             } // else
-            
+
         } // Change channel
 
         private void ChangeAdminSetting(string AdminSetting, string AdminSettingValue)
@@ -391,7 +388,7 @@ namespace Rumble
 
         } // ChangeAdminSetting
 
-        private void LaunchMumble(string CommandText)
+        private void IssueCommand(string CommandText)
         {
             // start new process
             currentMumbleProcess = new System.Diagnostics.Process();
@@ -402,7 +399,7 @@ namespace Rumble
             currentMumbleProcess.StartInfo = currentMumbleProcessStartInfo;
             currentMumbleProcess.Start();
             Thread.Sleep(1000);
-        } // LaunchMumble
+        } // IssueCommand
 
         private string GetDTMFShortHand(string DTMFKey)
         {
@@ -518,10 +515,10 @@ namespace Rumble
 
         private void Disconnect()
         {
-            LaunchMumble(ResetURI);
+            IssueCommand(ResetURI);
             //SpeakIt("client disconnected");
             PlaySound(@"C:\Users\kb\Desktop\wavs\clientDisconnected.wav");
-            
+
         } // Disconnect
 
         private void ResetDTMFCommandState()
@@ -563,7 +560,7 @@ namespace Rumble
             SpeakIt(string.Format("Configuration file number {0} has been loaded.", ConfigNumber));
 
         } // LoadConfig
-        
+
         private void PlaySound(string FileToPlay)
         {
             var waveReader = new WaveFileReader(FileToPlay);
@@ -587,8 +584,8 @@ namespace Rumble
             using (var synth = new SpeechSynthesizer())
             {
                 //synth.SetOutputToAudioStream(stream,
-                    //new SpeechAudioFormatInfo(44100, AudioBitsPerSample.Eight, AudioChannel.Mono));
-                
+                //new SpeechAudioFormatInfo(44100, AudioBitsPerSample.Eight, AudioChannel.Mono));
+
                 synth.SetOutputToWaveStream(stream);
                 synth.Rate = -1;
                 synth.Speak(TextToSpeak);
@@ -600,7 +597,7 @@ namespace Rumble
             waveOut.Init(provider);
             waveOut.Play();
         } // SpeakIt
-        
+
         private string BuildMumbleURI(RumbleConfigLine ConfigLine)
         {
             string MumbleURI = string.Empty;
@@ -613,7 +610,7 @@ namespace Rumble
             } // if
 
             string channelPath;
-            if (ConfigLine.ChannelPath.Substring(0,1) == @"/")
+            if (ConfigLine.ChannelPath.Substring(0, 1) == @"/")
             {
                 channelPath = ConfigLine.ChannelPath;
             } // if
@@ -630,22 +627,48 @@ namespace Rumble
             else
             {
                 MumbleURI = string.Format("mumble://{0}:{1}@{2}:{3}{4}", ConfigLine.UserName, ConfigLine.Password, ConfigLine.ServerURL, portToUse, channelPath);
-                
+
             } // else
 
             return MumbleURI;
 
         } // BuildMumbleURI
 
-        private static void MumbleMuteToggle()
+        private void MumbleMute()
         {
-        } // MumbleMuteToggle
+            IssueCommand(string.Format("{0}mumble rpc mute", MumbleExePath));
+            IsMuted = true;
+        } // MumbleMute
+
+        private void MumbleUnmute()
+        {
+            IssueCommand(string.Format("{0}mumble rpc unmute", MumbleExePath));
+            IsMuted = false;
+        } // MumbleUnmute
+
+        private void MumbleDeaf()
+        {
+            IssueCommand(string.Format("{0}mumble rpc deaf", MumbleExePath));
+            IsDeaf = true;
+        } // MumbleDeaf
+
+        private void MumbleUndeaf()
+        {
+            IssueCommand(string.Format("{0}mumble rpc undeaf", MumbleExePath));
+            IsDeaf = false;
+        } // MumbleUndeaf
 
         private void cmdMute_Click(object sender, EventArgs e)
         {
-            //MumbleMuteToggle();
-            MyMuteDelegate();
-        }
+            if (IsMuted)
+            {
+                MumbleUnmute();
+            } // if
+            else if (!IsMuted)
+            {
+                MumbleMute();
+            } // else if
+        } // cmdMute_Click
 
     } // public partial class Form1 : Form
 } // namespace Rumble
