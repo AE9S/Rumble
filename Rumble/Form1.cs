@@ -74,7 +74,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 InitializeComponent();
                 SetText("starting...");
                 DeviceNo = 4;
@@ -86,7 +86,7 @@ namespace Rumble
                 analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
                 analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
                 cmdStop.Enabled = false;
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -103,11 +103,11 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 cmdListen.Enabled = false;
                 cmdStop.Enabled = true;
                 analyzer.StartCapturing();
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -402,7 +402,7 @@ namespace Rumble
                     } // switch
 
                 } // if
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -419,7 +419,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 SetText(string.Format("changing channel to server {0}, channel {1}", ServerNumber, ChannelNumber));
 
                 if (ChannelNumber == "0")
@@ -453,7 +453,7 @@ namespace Rumble
                 {
                     SpeakIt("requested server and channel pair could not be found in the current config.");
                 } // else
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -493,7 +493,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-            
+
                 // start new process
                 currentMumbleProcess = new System.Diagnostics.Process();
 
@@ -503,7 +503,7 @@ namespace Rumble
                 currentMumbleProcess.StartInfo = currentMumbleProcessStartInfo;
                 currentMumbleProcess.Start();
                 Thread.Sleep(500);
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -546,7 +546,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 switch (DTMFKey)
                 {
                     case "None":
@@ -624,7 +624,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-               
+
                 // InvokeRequired required compares the thread ID of the
                 // calling thread to the thread ID of the creating thread.
                 // If these threads are different, it returns true.
@@ -654,7 +654,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 cmdStop.Enabled = false;
                 cmdListen.Enabled = true;
                 analyzer.StopCapturing();
@@ -677,7 +677,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 switch (EvaluateString)
                 {
                     case @"0":
@@ -714,7 +714,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-              
+
                 LaunchMumble(ResetURI);
                 //SpeakIt("client disconnected");
                 PlaySound(@"C:\Users\kb\Desktop\wavs\clientDisconnected.wav");
@@ -734,7 +734,7 @@ namespace Rumble
             {
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
-                MethodBeginLogging(myMethod);                
+                MethodBeginLogging(myMethod);
 
                 CurrentDTMFCommand = string.Empty;
                 FinalDTMFCommand = string.Empty;
@@ -756,7 +756,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 SetText(string.Format("Loading config {0}", ConfigNumber));
 
                 // clear out old config
@@ -802,7 +802,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 var waveReader = new WaveFileReader(FileToPlay);
                 var waveOut = new WaveOut();
                 waveOut.DeviceNumber = DeviceNo;
@@ -814,7 +814,7 @@ namespace Rumble
                 waveOut.Init(waveReader);
                 waveOut.Play();
                 Thread.Sleep(2500);
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -831,7 +831,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-               
+
                 //SetText(string.Format("speaking text {0}", TextToSpeak));
                 IWaveProvider provider = null;
                 var stream = new MemoryStream();
@@ -869,7 +869,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 string portToUse = ConfigLine.Port;
                 // no port specified, use default
                 if (string.IsNullOrEmpty(portToUse))
@@ -916,7 +916,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 IssueCommand(@MumbleExePath, @"rpc mute");
                 IsMuted = true;
 
@@ -936,7 +936,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-               
+
                 IssueCommand(@MumbleExePath, @"rpc unmute");
                 IsMuted = false;
 
@@ -956,7 +956,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 IssueCommand(@MumbleExePath, @"rpc deaf");
                 IsDeaf = true;
 
@@ -976,7 +976,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 IssueCommand(@MumbleExePath, @"rpc undeaf");
                 IsDeaf = false;
 
@@ -996,7 +996,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 if (IsMuted)
                 {
                     MumbleUnmute();
@@ -1014,7 +1014,7 @@ namespace Rumble
                 UtilityMethods.ExceptionHandler(ex, TraceString);
             } // catch            
         } // cmdMute_Click
-        
+
 
         /// <summary>
         /// Generates trace strings and writes them to the debugger.
@@ -1039,6 +1039,6 @@ namespace Rumble
             // Remove method name from end of trace string
             TraceString = TraceString.Substring(0, TraceString.LastIndexOf(@"|" + CurrentMethod.Name));
         } // MethodEndLogging
-        
+
     } // public partial class Form1 : Form
 } // namespace Rumble

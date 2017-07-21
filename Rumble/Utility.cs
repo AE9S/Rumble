@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Forms;
 
 namespace Utility
 {
@@ -21,6 +22,7 @@ namespace Utility
         {
             string detail = ExceptionStringBuilder(ex, 0, TraceString);
             Debug.WriteLine(detail);
+            MessageBox.Show(detail);
         } // ExceptionHandler
 
         /// <summary>
