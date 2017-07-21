@@ -16,6 +16,8 @@ using System.IO;
 using NAudio.CoreAudioApi;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Reflection;
+using Utility;
 
 namespace Rumble
 {
@@ -33,6 +35,7 @@ namespace Rumble
 
     public partial class Form1 : Form
     {
+        string TraceString = string.Empty;
         WaveInEvent micIn = new WaveInEvent { WaveFormat = new WaveFormat(8000, 32, 1) };
         LiveAudioDtmfAnalyzer analyzer;
         string CurrentDTMFCommand = string.Empty;
@@ -66,413 +69,549 @@ namespace Rumble
 
         public Form1()
         {
-            InitializeComponent();
-            SetText("starting...");
-            DeviceNo = 4;
-            micIn.DeviceNumber = DeviceNo;
-            MyState = DTMFCommandStates.ignore;
-            SpeakIt("Welcome to Rumble!");
-            LoadConfig("0");
-            analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
-            analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
-            analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
-            cmdStop.Enabled = false;
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                InitializeComponent();
+                SetText("starting...");
+                DeviceNo = 4;
+                micIn.DeviceNumber = DeviceNo;
+                MyState = DTMFCommandStates.ignore;
+                SpeakIt("Welcome to Rumble!");
+                LoadConfig("0");
+                analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
+                analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
+                analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
+                cmdStop.Enabled = false;
+                
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch           
         } // Form1
 
         private void cmdListen_Click(object sender, EventArgs e)
         {
-            cmdListen.Enabled = false;
-            cmdStop.Enabled = true;
-            analyzer.StartCapturing();
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                cmdListen.Enabled = false;
+                cmdStop.Enabled = true;
+                analyzer.StartCapturing();
+                
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch           
         } // cmdListen_Click
 
         private void Analyzer_DtmfToneStarted(DtmfToneStart obj)
         {
-            SetText(string.Empty);
-            MumbleMute();
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                SetText(string.Empty);
+                MumbleMute();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // Analyzer_DtmfToneStarted
 
         private void Analyzer_DtmfToneStopped(DtmfToneEnd obj)
         {
-            string currentDTMFChar = GetDTMFShortHand(obj.DtmfTone.Key.ToString());
-            bool fallThrough = false;
-
-            // GET FIRST CHARACTER
-            // is this the beginning of a new command?
-            if (string.IsNullOrEmpty(CurrentDTMFCommand))
+            try
             {
-                // is this character initiating a new command? (#)
-                if (currentDTMFChar == @"#")
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                string currentDTMFChar = GetDTMFShortHand(obj.DtmfTone.Key.ToString());
+                bool fallThrough = false;
+
+                // GET FIRST CHARACTER
+                // is this the beginning of a new command?
+                if (string.IsNullOrEmpty(CurrentDTMFCommand))
                 {
-                    MyState = DTMFCommandStates.isCommand;
-                    CurrentDTMFCommand = currentDTMFChar;
-                    fallThrough = true;
+                    // is this character initiating a new command? (#)
+                    if (currentDTMFChar == @"#")
+                    {
+                        MyState = DTMFCommandStates.isCommand;
+                        CurrentDTMFCommand = currentDTMFChar;
+                        fallThrough = true;
+                    } // if
                 } // if
-            } // if
 
 
-            // GET SECOND CHARACTER
-            // command has started, get 2nd char
-            if (MyState == DTMFCommandStates.isCommand && fallThrough == false)
+                // GET SECOND CHARACTER
+                // command has started, get 2nd char
+                if (MyState == DTMFCommandStates.isCommand && fallThrough == false)
+                {
+                    if (currentDTMFChar == @"*")
+                    {
+                        // 2nd position is *, command is #*
+                        MyState = DTMFCommandStates.isDisconnect;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        FinalDTMFCommand = CurrentDTMFCommand;
+                    } // if
+                      // 2nd char is NOT *, so it MUST be 0-9
+                    else if (IsNumeric(currentDTMFChar))
+                    {
+                        MyState = DTMFCommandStates.isNotDisconnect;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        fallThrough = true;
+                    } // else if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+
+                // GET THIRD CHARACTER
+                // command has started and is not a disconnect, get 3rd char
+                if (MyState == DTMFCommandStates.isNotDisconnect && fallThrough == false)
+                {
+                    // if 3rd char is * this is a config change
+                    if (currentDTMFChar == @"*")
+                    {
+                        MyState = DTMFCommandStates.isLoadConfig;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        FinalDTMFCommand = CurrentDTMFCommand;
+                    } // if
+                      // if 3rd char is 0-9, this is isAdminSettingORChannelChange
+                    else if (IsNumeric(currentDTMFChar))
+                    {
+                        MyState = DTMFCommandStates.isAdminSettingORChannelChange;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        fallThrough = true;
+                    } // else if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+
+                // GET FOURTH CHARACTER
+                //command has started, and is either Admin Setting or Channel Change, get 4th char
+                if (MyState == DTMFCommandStates.isAdminSettingORChannelChange && fallThrough == false)
+                {
+                    // if 4th char is # this is an Admin Setting change
+                    if (currentDTMFChar == @"#")
+                    {
+                        MyState = DTMFCommandStates.isAdminSetting;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        fallThrough = true;
+                    } // if
+                      // if 4th char is 0-9, this is a channel change
+                    else if (IsNumeric(currentDTMFChar))
+                    {
+                        MyState = DTMFCommandStates.isChangeChannel;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        fallThrough = true;
+                    } // else if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+
+                // GET FIFTH CHARACTER
+                //command has started, and is Admin Setting, get 5th char
+                if (MyState == DTMFCommandStates.isAdminSetting && fallThrough == false)
+                {
+                    // Admin Setting change, 5th char is 0-9
+                    if (IsNumeric(currentDTMFChar))
+                    {
+                        MyState = DTMFCommandStates.isAdminSettingNotFinal;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        fallThrough = true;
+                    } // if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+                //command has started, and is Channel Change, get 5th char
+                if (MyState == DTMFCommandStates.isChangeChannel && fallThrough == false)
+                {
+                    // Admin Setting change, 5th char is #
+                    if (currentDTMFChar == @"#")
+                    {
+                        MyState = DTMFCommandStates.isChannelChangeNoChannelNumber;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        fallThrough = true;
+                    } // if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+
+                //GET SIXTH CHARACTER
+                // command has started, is Admin Setting, get 6th char
+                if (MyState == DTMFCommandStates.isAdminSettingNotFinal && fallThrough == false)
+                {
+                    // Admin Setting change, 6th char is *
+                    if (currentDTMFChar == @"*")
+                    {
+                        MyState = DTMFCommandStates.isAdminSettingFinal;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        FinalDTMFCommand = CurrentDTMFCommand;
+                        fallThrough = true;
+                    } // if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+                // command has started, is Channel Change, get 6th char
+                if (MyState == DTMFCommandStates.isChannelChangeNoChannelNumber && fallThrough == false)
+                {
+                    // Channel Change, 6th char is 0-9
+                    if (IsNumeric(currentDTMFChar))
+                    {
+                        MyState = DTMFCommandStates.isChannelChangeNotFinal;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        fallThrough = true;
+                    } // if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+
+                //GET SEVENTH CHARACTER
+                if (MyState == DTMFCommandStates.isChannelChangeNotFinal && fallThrough == false)
+                {
+                    // Channel Change, 7th char is *
+                    if (currentDTMFChar == @"*")
+                    {
+                        MyState = DTMFCommandStates.isChannelChangeFinal;
+                        CurrentDTMFCommand += currentDTMFChar;
+                        FinalDTMFCommand = CurrentDTMFCommand;
+                        fallThrough = true;
+                    } // if
+                      // illegal char passed, reset
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
+                } // if
+
+                ProcessDTMFCommand(FinalDTMFCommand, MyState);
+                SetText(currentDTMFChar + "-" + CurrentDTMFCommand);
+                MumbleUnmute();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
             {
-                if (currentDTMFChar == @"*")
-                {
-                    // 2nd position is *, command is #*
-                    MyState = DTMFCommandStates.isDisconnect;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    FinalDTMFCommand = CurrentDTMFCommand;
-                } // if
-                // 2nd char is NOT *, so it MUST be 0-9
-                else if (IsNumeric(currentDTMFChar))
-                {
-                    MyState = DTMFCommandStates.isNotDisconnect;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    fallThrough = true;
-                } // else if
-                // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-
-            // GET THIRD CHARACTER
-            // command has started and is not a disconnect, get 3rd char
-            if (MyState == DTMFCommandStates.isNotDisconnect && fallThrough == false)
-            {
-                // if 3rd char is * this is a config change
-                if (currentDTMFChar == @"*")
-                {
-                    MyState = DTMFCommandStates.isLoadConfig;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    FinalDTMFCommand = CurrentDTMFCommand;
-                } // if
-                // if 3rd char is 0-9, this is isAdminSettingORChannelChange
-                else if (IsNumeric(currentDTMFChar))
-                {
-                    MyState = DTMFCommandStates.isAdminSettingORChannelChange;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    fallThrough = true;
-                } // else if
-                  // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-
-            // GET FOURTH CHARACTER
-            //command has started, and is either Admin Setting or Channel Change, get 4th char
-            if (MyState == DTMFCommandStates.isAdminSettingORChannelChange && fallThrough == false)
-            {
-                // if 4th char is # this is an Admin Setting change
-                if (currentDTMFChar == @"#")
-                {
-                    MyState = DTMFCommandStates.isAdminSetting;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    fallThrough = true;
-                } // if
-                // if 4th char is 0-9, this is a channel change
-                else if (IsNumeric(currentDTMFChar))
-                {
-                    MyState = DTMFCommandStates.isChangeChannel;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    fallThrough = true;
-                } // else if
-                // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-
-            // GET FIFTH CHARACTER
-            //command has started, and is Admin Setting, get 5th char
-            if (MyState == DTMFCommandStates.isAdminSetting && fallThrough == false)
-            {
-                // Admin Setting change, 5th char is 0-9
-                if (IsNumeric(currentDTMFChar))
-                {
-                    MyState = DTMFCommandStates.isAdminSettingNotFinal;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    fallThrough = true;
-                } // if
-                // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-            //command has started, and is Channel Change, get 5th char
-            if (MyState == DTMFCommandStates.isChangeChannel && fallThrough == false)
-            {
-                // Admin Setting change, 5th char is #
-                if (currentDTMFChar == @"#")
-                {
-                    MyState = DTMFCommandStates.isChannelChangeNoChannelNumber;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    fallThrough = true;
-                } // if
-                // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-
-            //GET SIXTH CHARACTER
-            // command has started, is Admin Setting, get 6th char
-            if (MyState == DTMFCommandStates.isAdminSettingNotFinal && fallThrough == false)
-            {
-                // Admin Setting change, 6th char is *
-                if (currentDTMFChar == @"*")
-                {
-                    MyState = DTMFCommandStates.isAdminSettingFinal;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    FinalDTMFCommand = CurrentDTMFCommand;
-                    fallThrough = true;
-                } // if
-                // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-            // command has started, is Channel Change, get 6th char
-            if (MyState == DTMFCommandStates.isChannelChangeNoChannelNumber && fallThrough == false)
-            {
-                // Channel Change, 6th char is 0-9
-                if (IsNumeric(currentDTMFChar))
-                {
-                    MyState = DTMFCommandStates.isChannelChangeNotFinal;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    fallThrough = true;
-                } // if
-                // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-
-            //GET SEVENTH CHARACTER
-            if (MyState == DTMFCommandStates.isChannelChangeNotFinal && fallThrough == false)
-            {
-                // Channel Change, 7th char is *
-                if (currentDTMFChar == @"*")
-                {
-                    MyState = DTMFCommandStates.isChannelChangeFinal;
-                    CurrentDTMFCommand += currentDTMFChar;
-                    FinalDTMFCommand = CurrentDTMFCommand;
-                    fallThrough = true;
-                } // if
-                // illegal char passed, reset
-                else
-                {
-                    ResetDTMFCommandState();
-                } // else
-            } // if
-
-            Thread.Sleep(250);
-            ProcessDTMFCommand(FinalDTMFCommand, MyState);
-            SetText(currentDTMFChar + "-" + CurrentDTMFCommand);
-            MumbleUnmute();
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // Analyzer_DtmfToneStopped
 
         private void ProcessDTMFCommand(string DTMFCommand, DTMFCommandStates CommandState)
         {
-            SetText("Processing Command -- " + DTMFCommand);
-
-            // only proceed is there's a complete command to process
-            if (!string.IsNullOrEmpty(DTMFCommand))
+            try
             {
-                switch (CommandState)
-                {
-                    case DTMFCommandStates.ignore:
-                    case DTMFCommandStates.isCommand:
-                    case DTMFCommandStates.isNotDisconnect:
-                    case DTMFCommandStates.isAdminSettingORChannelChange:
-                    case DTMFCommandStates.isAdminSetting:
-                    case DTMFCommandStates.isChangeChannel:
-                    case DTMFCommandStates.isAdminSettingNotFinal:
-                    case DTMFCommandStates.isChannelChangeNoChannelNumber:
-                    case DTMFCommandStates.isChannelChangeNotFinal:
-                        break;
-                    case DTMFCommandStates.isDisconnect:
-                        // disconnect
-                        Disconnect();
-                        ResetDTMFCommandState();
-                        break;
-                    case DTMFCommandStates.isLoadConfig:
-                        // load config
-                        // get config #
-                        string configNumber = DTMFCommand.Substring(1, 1);
-                        LoadConfig(configNumber);
-                        ResetDTMFCommandState();
-                        break;
-                    case DTMFCommandStates.isAdminSettingFinal:
-                        // change admin setting
-                        // get admin setting number and setting value number
-                        string adminSetting = DTMFCommand.Substring(1, 2);
-                        string adminSettingValue = DTMFCommand.Substring(4, 1);
-                        ChangeAdminSetting(adminSetting, adminSettingValue);
-                        ResetDTMFCommandState();
-                        break;
-                    case DTMFCommandStates.isChannelChangeFinal:
-                        // change channel
-                        // get server number and channel number
-                        string serverNumber = DTMFCommand.Substring(1, 3);
-                        string channelNumber = DTMFCommand.Substring(5, 1);
-                        ChangeChannel(serverNumber, channelNumber);
-                        ResetDTMFCommandState();
-                        break;
-                    default:
-                        break;
-                } // switch
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
 
-            } // if
+                SetText("Processing Command -- " + DTMFCommand);
+
+                // only proceed is there's a complete command to process
+                if (!string.IsNullOrEmpty(DTMFCommand))
+                {
+                    switch (CommandState)
+                    {
+                        case DTMFCommandStates.ignore:
+                        case DTMFCommandStates.isCommand:
+                        case DTMFCommandStates.isNotDisconnect:
+                        case DTMFCommandStates.isAdminSettingORChannelChange:
+                        case DTMFCommandStates.isAdminSetting:
+                        case DTMFCommandStates.isChangeChannel:
+                        case DTMFCommandStates.isAdminSettingNotFinal:
+                        case DTMFCommandStates.isChannelChangeNoChannelNumber:
+                        case DTMFCommandStates.isChannelChangeNotFinal:
+                            break;
+                        case DTMFCommandStates.isDisconnect:
+                            // disconnect
+                            Disconnect();
+                            ResetDTMFCommandState();
+                            break;
+                        case DTMFCommandStates.isLoadConfig:
+                            // load config
+                            // get config #
+                            string configNumber = DTMFCommand.Substring(1, 1);
+                            LoadConfig(configNumber);
+                            ResetDTMFCommandState();
+                            break;
+                        case DTMFCommandStates.isAdminSettingFinal:
+                            // change admin setting
+                            // get admin setting number and setting value number
+                            string adminSetting = DTMFCommand.Substring(1, 2);
+                            string adminSettingValue = DTMFCommand.Substring(4, 1);
+                            ChangeAdminSetting(adminSetting, adminSettingValue);
+                            ResetDTMFCommandState();
+                            break;
+                        case DTMFCommandStates.isChannelChangeFinal:
+                            // change channel
+                            // get server number and channel number
+                            string serverNumber = DTMFCommand.Substring(1, 3);
+                            string channelNumber = DTMFCommand.Substring(5, 1);
+                            ChangeChannel(serverNumber, channelNumber);
+                            ResetDTMFCommandState();
+                            break;
+                        default:
+                            break;
+                    } // switch
+
+                } // if
+                
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // ProcessDTMFCommand
 
         private void ChangeChannel(string ServerNumber, string ChannelNumber)
         {
-            SetText(string.Format("changing channel to server {0}, channel {1}", ServerNumber, ChannelNumber));
-
-            if (ChannelNumber == "0")
+            try
             {
-                LaunchMumble(ResetURI);
-            } // if
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                SetText(string.Format("changing channel to server {0}, channel {1}", ServerNumber, ChannelNumber));
 
-            RumbleConfigLine matchingConfig = new RumbleConfigLine();
-
-            // find matching config line
-            foreach (RumbleConfigLine myLine in MyConfigs)
-            {
-                if (myLine.ServerNumber == ServerNumber)
+                if (ChannelNumber == "0")
                 {
-                    if (myLine.ChannelNumber == ChannelNumber)
-                    {
-                        matchingConfig = myLine;
-                        break;
-                    } // if
+                    LaunchMumble(ResetURI);
                 } // if
-            } // foreach
 
-            // get URI from config based on server and channel number
-            if (!string.IsNullOrEmpty(matchingConfig.ServerURL))
-            {
-                string mumbleURI = BuildMumbleURI(matchingConfig);
-                LaunchMumble(mumbleURI);
-                SpeakIt(string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber));
-            } // if
-            else
-            {
-                SpeakIt("requested server and channel pair could not be found in the current config.");
-            } // else
+                RumbleConfigLine matchingConfig = new RumbleConfigLine();
 
+                // find matching config line
+                foreach (RumbleConfigLine myLine in MyConfigs)
+                {
+                    if (myLine.ServerNumber == ServerNumber)
+                    {
+                        if (myLine.ChannelNumber == ChannelNumber)
+                        {
+                            matchingConfig = myLine;
+                            break;
+                        } // if
+                    } // if
+                } // foreach
+
+                // get URI from config based on server and channel number
+                if (!string.IsNullOrEmpty(matchingConfig.ServerURL))
+                {
+                    string mumbleURI = BuildMumbleURI(matchingConfig);
+                    LaunchMumble(mumbleURI);
+                    SpeakIt(string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber));
+                } // if
+                else
+                {
+                    SpeakIt("requested server and channel pair could not be found in the current config.");
+                } // else
+                
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // Change channel
 
         private void ChangeAdminSetting(string AdminSetting, string AdminSettingValue)
         {
-            SetText(string.Format("changing admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
 
-            // TODO: change setting
+                SetText(string.Format("changing admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
 
-            SpeakIt(string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
+                // TODO: change setting
 
+                SpeakIt(string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // ChangeAdminSetting
 
         private void LaunchMumble(string CommandText)
         {
-            // start new process
-            currentMumbleProcess = new System.Diagnostics.Process();
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+            
+                // start new process
+                currentMumbleProcess = new System.Diagnostics.Process();
 
-            currentMumbleProcessStartInfo = new System.Diagnostics.ProcessStartInfo();
-            currentMumbleProcessStartInfo.FileName = CommandText;
+                currentMumbleProcessStartInfo = new System.Diagnostics.ProcessStartInfo();
+                currentMumbleProcessStartInfo.FileName = CommandText;
 
-            currentMumbleProcess.StartInfo = currentMumbleProcessStartInfo;
-            currentMumbleProcess.Start();
-            Thread.Sleep(1000);            
+                currentMumbleProcess.StartInfo = currentMumbleProcessStartInfo;
+                currentMumbleProcess.Start();
+                Thread.Sleep(500);
+                
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch                   
         } // LaunchMumbleCommand
 
         private void IssueCommand(string CommandText, string Arguments)
         {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = 
-                new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            //startInfo.FileName = "cmd.exe";
-            startInfo.FileName = CommandText;
-            startInfo.Arguments = Arguments;
-            process.StartInfo = startInfo;
-            process.Start();
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.FileName = CommandText;
+                startInfo.Arguments = Arguments;
+                process.StartInfo = startInfo;
+                process.Start();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // IssueCommand
 
         private string GetDTMFShortHand(string DTMFKey)
         {
             string retVal = string.Empty;
-            switch (DTMFKey)
+            try
             {
-                case "None":
-                    retVal = "?";
-                    break;
-                case "Zero":
-                    retVal = "0";
-                    break;
-                case "One":
-                    retVal = "1";
-                    break;
-                case "Two":
-                    retVal = "2";
-                    break;
-                case "Three":
-                    retVal = "3";
-                    break;
-                case "Four":
-                    retVal = "4";
-                    break;
-                case "Five":
-                    retVal = "5";
-                    break;
-                case "Six":
-                    retVal = "6";
-                    break;
-                case "Seven":
-                    retVal = "7";
-                    break;
-                case "Eight":
-                    retVal = "8";
-                    break;
-                case "Nine":
-                    retVal = "9";
-                    break;
-                case "Star":
-                    retVal = "*";
-                    break;
-                case "Hash":
-                    retVal = "#";
-                    break;
-                case "A":
-                    retVal = "A";
-                    break;
-                case "B":
-                    retVal = "B";
-                    break;
-                case "C":
-                    retVal = "C";
-                    break;
-                case "D":
-                    retVal = "D";
-                    break;
-                default:
-                    break;
-            } // switch
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                switch (DTMFKey)
+                {
+                    case "None":
+                        retVal = "?";
+                        break;
+                    case "Zero":
+                        retVal = "0";
+                        break;
+                    case "One":
+                        retVal = "1";
+                        break;
+                    case "Two":
+                        retVal = "2";
+                        break;
+                    case "Three":
+                        retVal = "3";
+                        break;
+                    case "Four":
+                        retVal = "4";
+                        break;
+                    case "Five":
+                        retVal = "5";
+                        break;
+                    case "Six":
+                        retVal = "6";
+                        break;
+                    case "Seven":
+                        retVal = "7";
+                        break;
+                    case "Eight":
+                        retVal = "8";
+                        break;
+                    case "Nine":
+                        retVal = "9";
+                        break;
+                    case "Star":
+                        retVal = "*";
+                        break;
+                    case "Hash":
+                        retVal = "#";
+                        break;
+                    case "A":
+                        retVal = "A";
+                        break;
+                    case "B":
+                        retVal = "B";
+                        break;
+                    case "C":
+                        retVal = "C";
+                        break;
+                    case "D":
+                        retVal = "D";
+                        break;
+                    default:
+                        break;
+                } // switch
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
+
             return retVal;
         } // GetDTMFShorthand
 
@@ -480,208 +619,426 @@ namespace Rumble
 
         private void SetText(string text)
         {
-            // InvokeRequired required compares the thread ID of the
-            // calling thread to the thread ID of the creating thread.
-            // If these threads are different, it returns true.
-            if (this.textBox1.InvokeRequired)
+            try
             {
-                SetTextCallback d = new SetTextCallback(SetText);
-                this.Invoke(d, new object[] { text });
-            }
-            else
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+               
+                // InvokeRequired required compares the thread ID of the
+                // calling thread to the thread ID of the creating thread.
+                // If these threads are different, it returns true.
+                if (this.textBox1.InvokeRequired)
+                {
+                    SetTextCallback d = new SetTextCallback(SetText);
+                    this.Invoke(d, new object[] { text });
+                }
+                else
+                {
+                    this.textBox1.Text = text;
+                }
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
             {
-                this.textBox1.Text = text;
-            }
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch      
         } // SetText
 
         private void cmdStop_Click(object sender, EventArgs e)
         {
-            cmdStop.Enabled = false;
-            cmdListen.Enabled = true;
-            analyzer.StopCapturing();
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                cmdStop.Enabled = false;
+                cmdListen.Enabled = true;
+                analyzer.StopCapturing();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch           
         } // cmdStop_Click
 
         private bool IsNumeric(string EvaluateString)
         {
             bool retVal = false;
 
-            switch (EvaluateString)
+            try
             {
-                case @"0":
-                case @"1":
-                case @"2":
-                case @"3":
-                case @"4":
-                case @"5":
-                case @"6":
-                case @"7":
-                case @"8":
-                case @"9":
-                    retVal = true;
-                    break;
-                default:
-                    break;
-            } // switch
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                switch (EvaluateString)
+                {
+                    case @"0":
+                    case @"1":
+                    case @"2":
+                    case @"3":
+                    case @"4":
+                    case @"5":
+                    case @"6":
+                    case @"7":
+                    case @"8":
+                    case @"9":
+                        retVal = true;
+                        break;
+                    default:
+                        break;
+                } // switch
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
 
             return retVal;
         } // IsNumeric
 
         private void Disconnect()
         {
-            LaunchMumble(ResetURI);
-            //SpeakIt("client disconnected");
-            PlaySound(@"C:\Users\kb\Desktop\wavs\clientDisconnected.wav");
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+              
+                LaunchMumble(ResetURI);
+                //SpeakIt("client disconnected");
+                PlaySound(@"C:\Users\kb\Desktop\wavs\clientDisconnected.wav");
 
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // Disconnect
 
         private void ResetDTMFCommandState()
         {
-            CurrentDTMFCommand = string.Empty;
-            FinalDTMFCommand = string.Empty;
-            MyState = DTMFCommandStates.ignore;
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);                
+
+                CurrentDTMFCommand = string.Empty;
+                FinalDTMFCommand = string.Empty;
+                MyState = DTMFCommandStates.ignore;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // ResetDTMFCommandState
 
         private void LoadConfig(string ConfigNumber)
         {
-            SetText(string.Format("Loading config {0}", ConfigNumber));
-
-            // clear out old config
-            MyConfigs = new List<RumbleConfigLine>();
-
-            string configFileName = string.Format(@"rumbleConfig_{0}.csv", ConfigNumber);
-            string filePath = string.Format("{0}{1}", ConfigFilePath, configFileName);
-
-            StreamReader sr = new StreamReader(filePath);
-            string line;
-            string[] dataRow = new string[6];
-            RumbleConfigLine thisRumbleConfigLine;
-
-            while ((line = sr.ReadLine()) != null)
+            try
             {
-                dataRow = line.Split(',');
-                thisRumbleConfigLine = new RumbleConfigLine();
-                thisRumbleConfigLine.ServerNumber = dataRow[0];
-                thisRumbleConfigLine.ChannelNumber = dataRow[1];
-                thisRumbleConfigLine.ServerURL = dataRow[2];
-                thisRumbleConfigLine.Port = dataRow[3];
-                thisRumbleConfigLine.UserName = dataRow[4];
-                thisRumbleConfigLine.Password = dataRow[5];
-                thisRumbleConfigLine.ChannelPath = dataRow[6];
-                MyConfigs.Add(thisRumbleConfigLine);
-            } // while
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                SetText(string.Format("Loading config {0}", ConfigNumber));
 
-            SpeakIt(string.Format("Configuration file number {0} has been loaded.", ConfigNumber));
+                // clear out old config
+                MyConfigs = new List<RumbleConfigLine>();
 
+                string configFileName = string.Format(@"rumbleConfig_{0}.csv", ConfigNumber);
+                string filePath = string.Format("{0}{1}", ConfigFilePath, configFileName);
+
+                StreamReader sr = new StreamReader(filePath);
+                string line;
+                string[] dataRow = new string[6];
+                RumbleConfigLine thisRumbleConfigLine;
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    dataRow = line.Split(',');
+                    thisRumbleConfigLine = new RumbleConfigLine();
+                    thisRumbleConfigLine.ServerNumber = dataRow[0];
+                    thisRumbleConfigLine.ChannelNumber = dataRow[1];
+                    thisRumbleConfigLine.ServerURL = dataRow[2];
+                    thisRumbleConfigLine.Port = dataRow[3];
+                    thisRumbleConfigLine.UserName = dataRow[4];
+                    thisRumbleConfigLine.Password = dataRow[5];
+                    thisRumbleConfigLine.ChannelPath = dataRow[6];
+                    MyConfigs.Add(thisRumbleConfigLine);
+                } // while
+
+                SpeakIt(string.Format("Configuration file number {0} has been loaded.", ConfigNumber));
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // LoadConfig
 
         private void PlaySound(string FileToPlay)
         {
-            var waveReader = new WaveFileReader(FileToPlay);
-            var waveOut = new WaveOut();
-            waveOut.DeviceNumber = DeviceNo;
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                var waveReader = new WaveFileReader(FileToPlay);
+                var waveOut = new WaveOut();
+                waveOut.DeviceNumber = DeviceNo;
 
-            // doesn't work for volume... :(
-            //float myFloat = 0.1F;
-            //waveOut.Volume = myFloat;
+                // doesn't work for volume... :(
+                //float myFloat = 0.1F;
+                //waveOut.Volume = myFloat;
 
-            waveOut.Init(waveReader);
-            waveOut.Play();
-            Thread.Sleep(2500);
+                waveOut.Init(waveReader);
+                waveOut.Play();
+                Thread.Sleep(2500);
+                
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // PlaySound
 
         private void SpeakIt(string TextToSpeak)
         {
-            //SetText(string.Format("speaking text {0}", TextToSpeak));
-            IWaveProvider provider = null;
-            var stream = new MemoryStream();
-            using (var synth = new SpeechSynthesizer())
+            try
             {
-                //synth.SetOutputToAudioStream(stream,
-                //new SpeechAudioFormatInfo(44100, AudioBitsPerSample.Eight, AudioChannel.Mono));
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+               
+                //SetText(string.Format("speaking text {0}", TextToSpeak));
+                IWaveProvider provider = null;
+                var stream = new MemoryStream();
+                using (var synth = new SpeechSynthesizer())
+                {
+                    //synth.SetOutputToAudioStream(stream,
+                    //new SpeechAudioFormatInfo(44100, AudioBitsPerSample.Eight, AudioChannel.Mono));
 
-                synth.SetOutputToWaveStream(stream);
-                synth.Rate = -1;
-                synth.Speak(TextToSpeak);
-                stream.Seek(0, SeekOrigin.Begin);
-                provider = new RawSourceWaveStream(stream, new WaveFormat(22000, 16, 1));
-            }
-            var waveOut = new WaveOut();
-            waveOut.DeviceNumber = DeviceNo;
-            waveOut.Init(provider);
-            waveOut.Play();
+                    synth.SetOutputToWaveStream(stream);
+                    synth.Rate = -1;
+                    synth.Speak(TextToSpeak);
+                    stream.Seek(0, SeekOrigin.Begin);
+                    provider = new RawSourceWaveStream(stream, new WaveFormat(22000, 16, 1));
+                }
+                var waveOut = new WaveOut();
+                waveOut.DeviceNumber = DeviceNo;
+                waveOut.Init(provider);
+                waveOut.Play();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // SpeakIt
 
         private string BuildMumbleURI(RumbleConfigLine ConfigLine)
         {
             string MumbleURI = string.Empty;
 
-            string portToUse = ConfigLine.Port;
-            // no port specified, use default
-            if (string.IsNullOrEmpty(portToUse))
+            try
             {
-                portToUse = "64738";
-            } // if
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                string portToUse = ConfigLine.Port;
+                // no port specified, use default
+                if (string.IsNullOrEmpty(portToUse))
+                {
+                    portToUse = "64738";
+                } // if
 
-            string channelPath;
-            if (ConfigLine.ChannelPath.Substring(0, 1) == @"/")
-            {
-                channelPath = ConfigLine.ChannelPath;
-            } // if
-            else
-            {
-                channelPath = @"/" + ConfigLine.ChannelPath;
-            } // else
+                string channelPath;
+                if (ConfigLine.ChannelPath.Substring(0, 1) == @"/")
+                {
+                    channelPath = ConfigLine.ChannelPath;
+                } // if
+                else
+                {
+                    channelPath = @"/" + ConfigLine.ChannelPath;
+                } // else
 
-            if (string.IsNullOrEmpty(ConfigLine.Password))
-            {
-                // mumble://TestUser@server.com:23840/Open%20Talk/Subchannel%20A/?version=1.2.0
-                MumbleURI = string.Format("mumble://{0}@{1}:{2}{3}", ConfigLine.UserName, ConfigLine.ServerURL, portToUse, channelPath);
-            } // if
-            else
-            {
-                MumbleURI = string.Format("mumble://{0}:{1}@{2}:{3}{4}", ConfigLine.UserName, ConfigLine.Password, ConfigLine.ServerURL, portToUse, channelPath);
+                if (string.IsNullOrEmpty(ConfigLine.Password))
+                {
+                    // mumble://TestUser@server.com:23840/Open%20Talk/Subchannel%20A/?version=1.2.0
+                    MumbleURI = string.Format("mumble://{0}@{1}:{2}{3}", ConfigLine.UserName, ConfigLine.ServerURL, portToUse, channelPath);
+                } // if
+                else
+                {
+                    MumbleURI = string.Format("mumble://{0}:{1}@{2}:{3}{4}", ConfigLine.UserName, ConfigLine.Password, ConfigLine.ServerURL, portToUse, channelPath);
 
-            } // else
+                } // else
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
 
             return MumbleURI;
-
         } // BuildMumbleURI
 
         private void MumbleMute()
         {
-            IssueCommand(@MumbleExePath, @"rpc mute");            
-            IsMuted = true;
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                IssueCommand(@MumbleExePath, @"rpc mute");
+                IsMuted = true;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // MumbleMute
 
         private void MumbleUnmute()
         {
-            IssueCommand(@MumbleExePath, @"rpc unmute");
-            IsMuted = false;
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+               
+                IssueCommand(@MumbleExePath, @"rpc unmute");
+                IsMuted = false;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch           
         } // MumbleUnmute
 
         private void MumbleDeaf()
         {
-            IssueCommand(@MumbleExePath, @"rpc deaf");
-            IsDeaf = true;
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                IssueCommand(@MumbleExePath, @"rpc deaf");
+                IsDeaf = true;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch            
         } // MumbleDeaf
 
         private void MumbleUndeaf()
         {
-            IssueCommand(@MumbleExePath, @"rpc undeaf");
-            IsDeaf = false;
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                IssueCommand(@MumbleExePath, @"rpc undeaf");
+                IsDeaf = false;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
         } // MumbleUndeaf
 
         private void cmdMute_Click(object sender, EventArgs e)
         {
-            if (IsMuted)
+            try
             {
-                MumbleUnmute();
-            } // if
-            else if (!IsMuted)
-            {
-                MumbleMute();
-            } // else if
-        } // cmdMute_Click
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                
+                if (IsMuted)
+                {
+                    MumbleUnmute();
+                } // if
+                else if (!IsMuted)
+                {
+                    MumbleMute();
+                } // else if
 
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch            
+        } // cmdMute_Click
+        
+
+        /// <summary>
+        /// Generates trace strings and writes them to the debugger.
+        /// </summary>
+        /// <param name="CurrentMethod">A MethodBase object representing the calling method.</param>
+        private void MethodBeginLogging(MethodBase CurrentMethod)
+        {
+            TraceString += @"|" + CurrentMethod.Name + "("; // Append method name to trace string
+            IEnumerable<ParameterInfo> myParams = CurrentMethod.GetParameters(); // Get method parameter info
+            foreach (ParameterInfo myParam in myParams) { TraceString += myParam.Name + ", "; } // Add parameter names to trace string
+            if (TraceString.EndsWith(", ")) { TraceString = TraceString.Substring(0, (TraceString.Length - 2)); } // clean up trace string
+            TraceString += ")"; // clean up trace string
+            Debug.WriteLine(TraceString); // show trace string
+        } // MethodBeginLogging
+
+        /// <summary>
+        /// Cleans up trace string.
+        /// </summary>
+        /// <param name="CurrentMethod">A MethodBase object representing the calling method.</param>
+        private void MethodEndLogging(MethodBase CurrentMethod)
+        {
+            // Remove method name from end of trace string
+            TraceString = TraceString.Substring(0, TraceString.LastIndexOf(@"|" + CurrentMethod.Name));
+        } // MethodEndLogging
+        
     } // public partial class Form1 : Form
 } // namespace Rumble
