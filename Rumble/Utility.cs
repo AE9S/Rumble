@@ -7,12 +7,15 @@ using System.IO;
 using System.Windows.Forms;
 
 namespace Utility
-{
+{    
     /// <summary>
     /// Commonly Used Methods and Functions.
     /// </summary>
     public static class UtilityMethods
     {
+        // TODO: change this before final release
+        public static string DefaultExceptionWindowTitle = @"OH SHIT YO!!!";
+
         /// <summary>
         /// Handles any exceptions by displaying them to the user if compiled in debug mode
         /// or writing them to the log file specified in the application settings if compiled in release mode.
@@ -22,7 +25,7 @@ namespace Utility
         {
             string detail = ExceptionStringBuilder(ex, 0, TraceString);
             Debug.WriteLine(detail);
-            MessageBox.Show(detail);
+            MessageBox.Show(detail, DefaultExceptionWindowTitle);
         } // ExceptionHandler
 
         /// <summary>
