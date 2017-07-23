@@ -541,8 +541,7 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 SetText(string.Format("changing admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
-
-                // TODO: add settings
+                                
                 switch (AdminSetting)
                 {
                     case "00": // Mute / Unmute
@@ -579,6 +578,7 @@ namespace Rumble
                                 break;
                         } // switch
                         break;
+                    // TODO: add settings
                     default:
                         break;
                 } // switch
