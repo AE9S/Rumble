@@ -37,6 +37,10 @@
             this.label2 = new System.Windows.Forms.Label();
             this.comboWaveOut = new System.Windows.Forms.ComboBox();
             this.cmdUseDevices = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.cmdSelectIDFile = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtTimerInterval = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // textBox1
@@ -122,11 +126,40 @@
             this.cmdUseDevices.UseVisualStyleBackColor = true;
             this.cmdUseDevices.Click += new System.EventHandler(this.cmdUseDevices_Click);
             // 
+            // cmdSelectIDFile
+            // 
+            this.cmdSelectIDFile.Location = new System.Drawing.Point(303, 58);
+            this.cmdSelectIDFile.Name = "cmdSelectIDFile";
+            this.cmdSelectIDFile.Size = new System.Drawing.Size(75, 23);
+            this.cmdSelectIDFile.TabIndex = 9;
+            this.cmdSelectIDFile.Text = "Select ID File";
+            this.cmdSelectIDFile.UseVisualStyleBackColor = true;
+            this.cmdSelectIDFile.Click += new System.EventHandler(this.cmdSelectIDFile_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(300, 13);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(97, 13);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "Timer Interval (sec)";
+            // 
+            // txtTimerInterval
+            // 
+            this.txtTimerInterval.Location = new System.Drawing.Point(303, 30);
+            this.txtTimerInterval.Name = "txtTimerInterval";
+            this.txtTimerInterval.Size = new System.Drawing.Size(100, 20);
+            this.txtTimerInterval.TabIndex = 11;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 292);
+            this.Controls.Add(this.txtTimerInterval);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.cmdSelectIDFile);
             this.Controls.Add(this.cmdUseDevices);
             this.Controls.Add(this.comboWaveOut);
             this.Controls.Add(this.label2);
@@ -154,6 +187,10 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox comboWaveOut;
         private System.Windows.Forms.Button cmdUseDevices;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.Button cmdSelectIDFile;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtTimerInterval;
     }
 }
 
