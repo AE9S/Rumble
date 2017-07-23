@@ -1,6 +1,6 @@
 ﻿namespace Rumble
 {
-    partial class Form1
+    partial class frmMain
     {
         /// <summary>
         /// Required designer variable.
@@ -152,7 +152,7 @@
             this.txtTimerInterval.Size = new System.Drawing.Size(100, 20);
             this.txtTimerInterval.TabIndex = 11;
             // 
-            // Form1
+            // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -169,8 +169,8 @@
             this.Controls.Add(this.cmdStop);
             this.Controls.Add(this.cmdListen);
             this.Controls.Add(this.textBox1);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "frmMain";
+            this.Text = "Rumble";
             this.ResumeLayout(false);
             this.PerformLayout();
 

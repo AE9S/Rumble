@@ -34,7 +34,7 @@ namespace Rumble
         public string ChannelPath;
     } // RumbleConfigLine
 
-      public partial class Form1 : Form
+      public partial class frmMain : Form
     {
         string TraceString = string.Empty;
         WaveInEvent micIn = new WaveInEvent { WaveFormat = new WaveFormat(8000, 32, 1) };
@@ -73,7 +73,7 @@ namespace Rumble
         int IDTimerInterval = 6000;
         System.Timers.Timer MyTimer;
 
-        public Form1()
+        public frmMain()
         {
             try
             {
