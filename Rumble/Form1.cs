@@ -473,6 +473,37 @@ namespace Rumble
                 SetText(string.Format("changing admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
 
                 // TODO: change setting
+                switch (AdminSetting)
+                {
+                    case "0": // Mute / Unmute
+                        switch (AdminSettingValue)
+                        {
+                            case "0":
+                                MumbleMute();
+                                break;
+                            case "1":
+                                MumbleUnmute();
+                                break;
+                            default:
+                                break;
+                        } // switch
+                        break;
+                    case "1":
+                        switch (AdminSettingValue)
+                        {
+                            case "0":
+                                MumbleDeaf();
+                                break;
+                            case "1":
+                                MumbleUndeaf();
+                                break;
+                            default:
+                                break;
+                        } // switch
+                        break;
+                    default:
+                        break;
+                } // switch
 
                 SpeakIt(string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
 
