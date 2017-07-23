@@ -151,6 +151,7 @@
             this.txtTimerInterval.Name = "txtTimerInterval";
             this.txtTimerInterval.Size = new System.Drawing.Size(100, 20);
             this.txtTimerInterval.TabIndex = 11;
+            this.txtTimerInterval.Text = "600";
             // 
             // frmMain
             // 

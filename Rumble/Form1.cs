@@ -551,10 +551,12 @@ namespace Rumble
                             case "0":
                                 StayMuted = true;
                                 MumbleMute();
+                                SpeakIt("muted");
                                 break;
                             case "1":
                                 StayMuted = false;
                                 MumbleUnmute();
+                                SpeakIt("un-muted");
                                 break;
                             default:
                                 break;
@@ -566,10 +568,12 @@ namespace Rumble
                             case "0":
                                 StayMuted = true;
                                 MumbleDeaf();
+                                SpeakIt("deaf");
                                 break;
                             case "1":
                                 StayMuted = false;
                                 MumbleUndeaf();
+                                SpeakIt("un deaf");
                                 break;
                             default:
                                 break;
@@ -821,9 +825,8 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 LaunchMumble(ResetURI);
-                //SpeakIt("client disconnected");
-                PlaySound(@"C:\Users\kb\Desktop\wavs\clientDisconnected.wav");
-
+                SpeakIt("client disconnected");
+                
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -954,9 +957,12 @@ namespace Rumble
                 }
                 var waveOut = new WaveOut();
                 waveOut.DeviceNumber = DeviceOutNo;
+                waveOut.NumberOfBuffers = 100000;
                 waveOut.Init(provider);
                 waveOut.Play();
-
+                Thread.Sleep(1500);
+                waveOut.Dispose();
+                
                 // logging
                 MethodEndLogging(myMethod);
             } // try
