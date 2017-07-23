@@ -43,7 +43,8 @@ namespace Rumble
         System.Diagnostics.Process currentMumbleProcess;
         System.Diagnostics.ProcessStartInfo currentMumbleProcessStartInfo;
         string ResetURI = @"mumble://noUser@0.0.0.0:0/";
-        int DeviceNo;
+        int DeviceInNo = 4;
+        int DeviceOutNo = 4;
         List<RumbleConfigLine> MyConfigs = new List<RumbleConfigLine>();
         enum DTMFCommandStates
         {
@@ -77,8 +78,7 @@ namespace Rumble
 
                 InitializeComponent();
                 SetText("starting...");
-                DeviceNo = 4;
-                micIn.DeviceNumber = DeviceNo;
+                micIn.DeviceNumber = DeviceInNo;
                 MyState = DTMFCommandStates.ignore;
                 SpeakIt("Welcome to Rumble!");
                 LoadConfig("0");
@@ -836,7 +836,7 @@ namespace Rumble
 
                 var waveReader = new WaveFileReader(FileToPlay);
                 var waveOut = new WaveOut();
-                waveOut.DeviceNumber = DeviceNo;
+                waveOut.DeviceNumber = DeviceOutNo;
 
                 // doesn't work for volume... :(
                 //float myFloat = 0.1F;
@@ -878,7 +878,7 @@ namespace Rumble
                     provider = new RawSourceWaveStream(stream, new WaveFormat(22000, 16, 1));
                 }
                 var waveOut = new WaveOut();
-                waveOut.DeviceNumber = DeviceNo;
+                waveOut.DeviceNumber = DeviceOutNo;
                 waveOut.Init(provider);
                 waveOut.Play();
 
