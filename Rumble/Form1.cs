@@ -73,6 +73,7 @@ namespace Rumble
         string MumbleExePath = Environment.ExpandEnvironmentVariables(@"%PROGRAMFILES%\mumble\mumble.exe");
         bool IsMuted = false;
         bool IsDeaf = false;
+        bool StayMuted = false;
 
         public Form1()
         {
@@ -476,29 +477,33 @@ namespace Rumble
 
                 SetText(string.Format("changing admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
 
-                // TODO: change setting
+                // TODO: add settings
                 switch (AdminSetting)
                 {
-                    case "0": // Mute / Unmute
+                    case "00": // Mute / Unmute
                         switch (AdminSettingValue)
                         {
                             case "0":
+                                StayMuted = true;
                                 MumbleMute();
                                 break;
                             case "1":
+                                StayMuted = false;
                                 MumbleUnmute();
                                 break;
                             default:
                                 break;
                         } // switch
                         break;
-                    case "1":
+                    case "01":
                         switch (AdminSettingValue)
                         {
                             case "0":
+                                StayMuted = true;
                                 MumbleDeaf();
                                 break;
                             case "1":
+                                StayMuted = false;
                                 MumbleUndeaf();
                                 break;
                             default:
@@ -951,7 +956,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-
+                
                 IssueCommand(@MumbleExePath, @"rpc mute");
                 IsMuted = true;
 
@@ -972,8 +977,11 @@ namespace Rumble
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
 
-                IssueCommand(@MumbleExePath, @"rpc unmute");
-                IsMuted = false;
+                if (!StayMuted)
+                {
+                    IssueCommand(@MumbleExePath, @"rpc unmute");
+                    IsMuted = false;
+                } // if
 
                 // logging
                 MethodEndLogging(myMethod);
