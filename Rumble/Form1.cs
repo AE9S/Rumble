@@ -33,6 +33,12 @@ namespace Rumble
         public string ChannelPath;
     } // RumbleConfig
 
+    public struct WaveDevice
+    {
+        public string Name;
+        public int Value;
+    } // WaveDevice
+
     public partial class Form1 : Form
     {
         string TraceString = string.Empty;
@@ -43,8 +49,8 @@ namespace Rumble
         System.Diagnostics.Process currentMumbleProcess;
         System.Diagnostics.ProcessStartInfo currentMumbleProcessStartInfo;
         string ResetURI = @"mumble://noUser@0.0.0.0:0/";
-        int DeviceInNo = 4;
-        int DeviceOutNo = 4;
+        int DeviceInNo = 0;
+        int DeviceOutNo = 0;
         List<RumbleConfigLine> MyConfigs = new List<RumbleConfigLine>();
         enum DTMFCommandStates
         {
@@ -78,14 +84,8 @@ namespace Rumble
 
                 InitializeComponent();
                 SetText("starting...");
-                micIn.DeviceNumber = DeviceInNo;
-                MyState = DTMFCommandStates.ignore;
-                SpeakIt("Welcome to Rumble!");
-                LoadConfig("0");
-                analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
-                analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
-                analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
-                cmdStop.Enabled = false;
+                PopulateWaveInDevices();
+                PopulateWaveOutDevices();
 
                 // logging
                 MethodEndLogging(myMethod);
@@ -159,6 +159,10 @@ namespace Rumble
                         CurrentDTMFCommand = currentDTMFChar;
                         fallThrough = true;
                     } // if
+                    else
+                    {
+                        ResetDTMFCommandState();
+                    } // else
                 } // if
 
 
@@ -1028,14 +1032,11 @@ namespace Rumble
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
 
-                if (IsMuted)
-                {
-                    MumbleUnmute();
-                } // if
-                else if (!IsMuted)
-                {
-                    MumbleMute();
-                } // else if
+                StringBuilder mySB = new StringBuilder();
+                mySB.AppendLine(string.Format("Selected Input Device is {0} using Device Number {1}", comboWaveIn.SelectedItem, comboWaveIn.SelectedValue.ToString()));
+                mySB.AppendLine(string.Format("Selected Output Device is {0} using Device Number {1}", comboWaveOut.SelectedItem, comboWaveOut.SelectedValue.ToString()));
+
+                MessageBox.Show(mySB.ToString());
 
                 // logging
                 MethodEndLogging(myMethod);
@@ -1045,6 +1046,68 @@ namespace Rumble
                 UtilityMethods.ExceptionHandler(ex, TraceString);
             } // catch            
         } // cmdMute_Click
+
+        private void PopulateWaveInDevices()
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                // Bind combobox to dictionary
+                Dictionary<string, int> myDevices = new Dictionary<string, int>();
+
+                for (int deviceId = 0; deviceId < WaveIn.DeviceCount; deviceId++)
+                {
+                    var capabilitiesIn = WaveIn.GetCapabilities(deviceId);
+                    myDevices.Add(capabilitiesIn.ProductName, deviceId);
+                } // for
+                
+                comboWaveIn.DataSource = new BindingSource(myDevices, null);
+                comboWaveIn.DisplayMember = "Key";
+                comboWaveIn.ValueMember = "Value";
+                
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch            
+
+        } // PopulateWaveInDevices
+
+        private void PopulateWaveOutDevices()
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                // Bind combobox to dictionary
+                Dictionary<string, int> myDevices = new Dictionary<string, int>();
+
+                for (int deviceId = 0; deviceId < WaveOut.DeviceCount; deviceId++)
+                {
+                    var capabilitiesOut = WaveOut.GetCapabilities(deviceId);
+                    myDevices.Add(capabilitiesOut.ProductName, deviceId);
+                } // for
+
+                comboWaveOut.DataSource = new BindingSource(myDevices, null);
+                comboWaveOut.DisplayMember = "Key";
+                comboWaveOut.ValueMember = "Value";
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch            
+
+        } // PopulateWaveInDevices
 
 
         /// <summary>
@@ -1070,6 +1133,40 @@ namespace Rumble
             // Remove method name from end of trace string
             TraceString = TraceString.Substring(0, TraceString.LastIndexOf(@"|" + CurrentMethod.Name));
         } // MethodEndLogging
+
+        private void cmdUseDevices_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                DeviceInNo = (int)comboWaveIn.SelectedValue;
+                DeviceOutNo = (int)comboWaveOut.SelectedValue;
+
+                SetText(string.Format("DeviceIn set to {0} -- DeviceOut set to {1}", DeviceInNo.ToString(), DeviceOutNo.ToString()));
+
+                micIn.DeviceNumber = DeviceInNo;
+                MyState = DTMFCommandStates.ignore;
+                SpeakIt("Welcome to Rumble!");
+                LoadConfig("0");
+
+                analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
+                analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
+                analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
+                cmdStop.Enabled = false;
+                
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
+        } // cmdUseDevices_Click
+
 
     } // public partial class Form1 : Form
 } // namespace Rumble

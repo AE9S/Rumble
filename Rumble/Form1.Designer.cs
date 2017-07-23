@@ -32,12 +32,17 @@
             this.cmdListen = new System.Windows.Forms.Button();
             this.cmdStop = new System.Windows.Forms.Button();
             this.cmdMute = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.comboWaveIn = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.comboWaveOut = new System.Windows.Forms.ComboBox();
+            this.cmdUseDevices = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBox1
             // 
             this.textBox1.Enabled = false;
-            this.textBox1.Location = new System.Drawing.Point(13, 13);
+            this.textBox1.Location = new System.Drawing.Point(13, 143);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(729, 112);
@@ -45,7 +50,7 @@
             // 
             // cmdListen
             // 
-            this.cmdListen.Location = new System.Drawing.Point(12, 131);
+            this.cmdListen.Location = new System.Drawing.Point(12, 261);
             this.cmdListen.Name = "cmdListen";
             this.cmdListen.Size = new System.Drawing.Size(75, 23);
             this.cmdListen.TabIndex = 1;
@@ -55,7 +60,7 @@
             // 
             // cmdStop
             // 
-            this.cmdStop.Location = new System.Drawing.Point(667, 131);
+            this.cmdStop.Location = new System.Drawing.Point(667, 261);
             this.cmdStop.Name = "cmdStop";
             this.cmdStop.Size = new System.Drawing.Size(75, 23);
             this.cmdStop.TabIndex = 2;
@@ -65,7 +70,7 @@
             // 
             // cmdMute
             // 
-            this.cmdMute.Location = new System.Drawing.Point(94, 131);
+            this.cmdMute.Location = new System.Drawing.Point(94, 261);
             this.cmdMute.Name = "cmdMute";
             this.cmdMute.Size = new System.Drawing.Size(75, 23);
             this.cmdMute.TabIndex = 3;
@@ -73,11 +78,60 @@
             this.cmdMute.UseVisualStyleBackColor = true;
             this.cmdMute.Click += new System.EventHandler(this.cmdMute_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(13, 13);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(85, 13);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Wave In Device";
+            // 
+            // comboWaveIn
+            // 
+            this.comboWaveIn.FormattingEnabled = true;
+            this.comboWaveIn.Location = new System.Drawing.Point(16, 30);
+            this.comboWaveIn.Name = "comboWaveIn";
+            this.comboWaveIn.Size = new System.Drawing.Size(233, 21);
+            this.comboWaveIn.TabIndex = 5;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(16, 58);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(93, 13);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "Wave Out Device";
+            // 
+            // comboWaveOut
+            // 
+            this.comboWaveOut.FormattingEnabled = true;
+            this.comboWaveOut.Location = new System.Drawing.Point(16, 75);
+            this.comboWaveOut.Name = "comboWaveOut";
+            this.comboWaveOut.Size = new System.Drawing.Size(233, 21);
+            this.comboWaveOut.TabIndex = 7;
+            // 
+            // cmdUseDevices
+            // 
+            this.cmdUseDevices.Location = new System.Drawing.Point(19, 103);
+            this.cmdUseDevices.Name = "cmdUseDevices";
+            this.cmdUseDevices.Size = new System.Drawing.Size(75, 23);
+            this.cmdUseDevices.TabIndex = 8;
+            this.cmdUseDevices.Text = "Use These";
+            this.cmdUseDevices.UseVisualStyleBackColor = true;
+            this.cmdUseDevices.Click += new System.EventHandler(this.cmdUseDevices_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(754, 166);
+            this.ClientSize = new System.Drawing.Size(754, 292);
+            this.Controls.Add(this.cmdUseDevices);
+            this.Controls.Add(this.comboWaveOut);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.comboWaveIn);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.cmdMute);
             this.Controls.Add(this.cmdStop);
             this.Controls.Add(this.cmdListen);
@@ -95,6 +149,11 @@
         private System.Windows.Forms.Button cmdListen;
         private System.Windows.Forms.Button cmdStop;
         private System.Windows.Forms.Button cmdMute;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox comboWaveIn;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox comboWaveOut;
+        private System.Windows.Forms.Button cmdUseDevices;
     }
 }
 
