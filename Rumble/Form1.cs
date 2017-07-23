@@ -333,8 +333,7 @@ namespace Rumble
 
                 ProcessDTMFCommand(FinalDTMFCommand, MyState);
                 SetText(currentDTMFChar + "-" + CurrentDTMFCommand);
-                MumbleUnmute();
-
+                
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -739,6 +738,7 @@ namespace Rumble
                 CurrentDTMFCommand = string.Empty;
                 FinalDTMFCommand = string.Empty;
                 MyState = DTMFCommandStates.ignore;
+                MumbleUnmute();
 
                 // logging
                 MethodEndLogging(myMethod);
