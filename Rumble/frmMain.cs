@@ -38,6 +38,9 @@ namespace Rumble
 
       public partial class frmMain : Form
     {
+
+        #region Variables and Constants
+
         string TraceString = string.Empty;
         WaveInEvent micIn = new WaveInEvent { WaveFormat = new WaveFormat(8000, 32, 1) };
         LiveAudioDtmfAnalyzer analyzer;
@@ -75,6 +78,12 @@ namespace Rumble
         string IDWaveFile = string.Empty;
         int IDTimerInterval = 6000;
         System.Timers.Timer MyTimer;
+        delegate void SetTextCallback(string text);
+
+        #endregion // Variables and Constants
+
+
+        #region Event Handlers
 
         public frmMain()
         {
@@ -97,7 +106,7 @@ namespace Rumble
             {
                 UtilityMethods.ExceptionHandler(ex, TraceString);
             } // catch           
-        } // Form1
+        } // frmMain
 
         private void cmdListen_Click(object sender, EventArgs e)
         {
@@ -122,34 +131,6 @@ namespace Rumble
             } // catch           
         } // cmdListen_Click
 
-        private void StartIDTimerJob()
-        {
-
-            try
-            {
-                // logging
-                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
-                MethodBeginLogging(myMethod);
-
-                int timerInterval;
-                int.TryParse(txtTimerInterval.Text, out timerInterval);
-                IDTimerInterval = timerInterval * 1000;
-
-                MyTimer = new System.Timers.Timer();
-                MyTimer.Interval = IDTimerInterval;
-                MyTimer.AutoReset = true;
-                MyTimer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimedEvent);
-                MyTimer.Start();
-
-                // logging
-                MethodEndLogging(myMethod);
-            } // try
-            catch (Exception ex)
-            {
-                UtilityMethods.ExceptionHandler(ex, TraceString);
-            } // catch
-        } // StartIDTimerJob
-
         private void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
             try
@@ -168,25 +149,6 @@ namespace Rumble
                 UtilityMethods.ExceptionHandler(ex, TraceString);
             } // catch            
         } // OnTimedEvent
-
-        private void StopIDTimerJob()
-        {
-            try
-            {
-                // logging
-                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
-                MethodBeginLogging(myMethod);
-
-                MyTimer.Stop();
-
-                // logging
-                MethodEndLogging(myMethod);
-            } // try
-            catch (Exception ex)
-            {
-                UtilityMethods.ExceptionHandler(ex, TraceString);
-            } // catch            
-        } // StopIDTimerJob
 
         private void Analyzer_DtmfToneStarted(DtmfToneStart obj)
         {
@@ -418,6 +380,158 @@ namespace Rumble
             } // catch
         } // Analyzer_DtmfToneStopped
 
+        private void cmdStop_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                cmdStop.Enabled = false;
+                cmdListen.Enabled = true;
+                analyzer.StopCapturing();
+                StopIDTimerJob();
+                KillMumble();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch           
+        } // cmdStop_Click
+
+        private void cmdUseDevices_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                DeviceInNo = (int)comboWaveIn.SelectedValue;
+                DeviceOutNo = (int)comboWaveOut.SelectedValue;
+
+                SetText(string.Format("DeviceIn set to {0} -- DeviceOut set to {1}", DeviceInNo.ToString(), DeviceOutNo.ToString()));
+
+                micIn.DeviceNumber = DeviceInNo;
+                MyState = DTMFCommandStates.ignore;
+                SpeakIt("Welcome to Rumble!");
+                LoadConfig("0");
+
+                analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
+                analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
+                analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
+                cmdListen.Enabled = true;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
+        } // cmdUseDevices_Click
+
+        private void cmdSelectIDFile_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                openFileDialog1.Title = "Select the ID .wav file";
+                openFileDialog1.ShowDialog();
+                IDWaveFile = openFileDialog1.FileName;
+                lblWavIDFile.Text = IDWaveFile;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
+        } // cmdSelectIDFile_Click
+
+        private void cmdMute_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                StringBuilder mySB = new StringBuilder();
+                mySB.AppendLine(string.Format("Selected Input Device is {0} using Device Number {1}", comboWaveIn.SelectedItem, comboWaveIn.SelectedValue.ToString()));
+                mySB.AppendLine(string.Format("Selected Output Device is {0} using Device Number {1}", comboWaveOut.SelectedItem, comboWaveOut.SelectedValue.ToString()));
+
+                MessageBox.Show(mySB.ToString());
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch            
+        } // cmdMute_Click
+
+        #endregion // Event Handlers
+
+
+        #region Supporting Methods
+
+        private void StartIDTimerJob()
+        {
+
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                int timerInterval;
+                int.TryParse(txtTimerInterval.Text, out timerInterval);
+                IDTimerInterval = timerInterval * 1000;
+
+                MyTimer = new System.Timers.Timer();
+                MyTimer.Interval = IDTimerInterval;
+                MyTimer.AutoReset = true;
+                MyTimer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimedEvent);
+                MyTimer.Start();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
+        } // StartIDTimerJob
+
+        private void StopIDTimerJob()
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+
+                MyTimer.Stop();
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch            
+        } // StopIDTimerJob
+
         private void ProcessDTMFCommand(string DTMFCommand, DTMFCommandStates CommandState)
         {
             try
@@ -569,7 +683,7 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 SetText(string.Format("changing admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
-                                
+
                 switch (AdminSetting)
                 {
                     case "00": // Mute / Unmute
@@ -751,8 +865,6 @@ namespace Rumble
             return retVal;
         } // GetDTMFShorthand
 
-        delegate void SetTextCallback(string text);
-
         private void SetText(string text)
         {
             try
@@ -782,29 +894,6 @@ namespace Rumble
                 UtilityMethods.ExceptionHandler(ex, TraceString);
             } // catch      
         } // SetText
-
-        private void cmdStop_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // logging
-                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
-                MethodBeginLogging(myMethod);
-
-                cmdStop.Enabled = false;
-                cmdListen.Enabled = true;
-                analyzer.StopCapturing();
-                StopIDTimerJob();
-                KillMumble();
-
-                // logging
-                MethodEndLogging(myMethod);
-            } // try
-            catch (Exception ex)
-            {
-                UtilityMethods.ExceptionHandler(ex, TraceString);
-            } // catch           
-        } // cmdStop_Click
 
         private bool IsNumeric(string EvaluateString)
         {
@@ -855,7 +944,7 @@ namespace Rumble
 
                 LaunchMumble(ResetURI);
                 SpeakIt("client disconnected");
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -992,7 +1081,7 @@ namespace Rumble
                 waveOut.Init(provider);
                 waveOut.Play();
                 waveOut.Dispose();
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -1058,7 +1147,7 @@ namespace Rumble
                 // logging
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
-                
+
                 IssueCommand(@MumbleExePath, @"rpc mute");
                 IsMuted = true;
 
@@ -1150,11 +1239,11 @@ namespace Rumble
                     var capabilitiesIn = WaveIn.GetCapabilities(deviceId);
                     myDevices.Add(capabilitiesIn.ProductName, deviceId);
                 } // for
-                
+
                 comboWaveIn.DataSource = new BindingSource(myDevices, null);
                 comboWaveIn.DisplayMember = "Key";
                 comboWaveIn.ValueMember = "Value";
-                
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -1196,60 +1285,6 @@ namespace Rumble
 
         } // PopulateWaveInDevices
 
-        private void cmdUseDevices_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // logging
-                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
-                MethodBeginLogging(myMethod);
-
-                DeviceInNo = (int)comboWaveIn.SelectedValue;
-                DeviceOutNo = (int)comboWaveOut.SelectedValue;
-
-                SetText(string.Format("DeviceIn set to {0} -- DeviceOut set to {1}", DeviceInNo.ToString(), DeviceOutNo.ToString()));
-
-                micIn.DeviceNumber = DeviceInNo;
-                MyState = DTMFCommandStates.ignore;
-                SpeakIt("Welcome to Rumble!");
-                LoadConfig("0");
-
-                analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
-                analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
-                analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
-                cmdListen.Enabled = true;
-                
-                // logging
-                MethodEndLogging(myMethod);
-            } // try
-            catch (Exception ex)
-            {
-                UtilityMethods.ExceptionHandler(ex, TraceString);
-            } // catch
-        } // cmdUseDevices_Click
-
-        private void cmdSelectIDFile_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // logging
-                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
-                MethodBeginLogging(myMethod);
-
-                openFileDialog1.Title = "Select the ID .wav file";
-                openFileDialog1.ShowDialog();
-                IDWaveFile = openFileDialog1.FileName;
-                lblWavIDFile.Text = IDWaveFile;
-
-                // logging
-                MethodEndLogging(myMethod);
-            } // try
-            catch (Exception ex)
-            {
-                UtilityMethods.ExceptionHandler(ex, TraceString);
-            } // catch
-        } // cmdSelectIDFile_Click
-
         private void KillMumble()
         {
             MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
@@ -1262,7 +1297,7 @@ namespace Rumble
 
                 procs = Process.GetProcessesByName("mumble");
                 if (procs.Count<object>() > 0)
-                {                    
+                {
                     Process mumbleProc = procs[0];
                     if (!mumbleProc.HasExited)
                     {
@@ -1289,28 +1324,10 @@ namespace Rumble
             } // finally
         } // KillMumble
 
-        private void cmdMute_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // logging
-                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
-                MethodBeginLogging(myMethod);
+        #endregion // Supporting Methods
 
-                StringBuilder mySB = new StringBuilder();
-                mySB.AppendLine(string.Format("Selected Input Device is {0} using Device Number {1}", comboWaveIn.SelectedItem, comboWaveIn.SelectedValue.ToString()));
-                mySB.AppendLine(string.Format("Selected Output Device is {0} using Device Number {1}", comboWaveOut.SelectedItem, comboWaveOut.SelectedValue.ToString()));
 
-                MessageBox.Show(mySB.ToString());
-
-                // logging
-                MethodEndLogging(myMethod);
-            } // try
-            catch (Exception ex)
-            {
-                UtilityMethods.ExceptionHandler(ex, TraceString);
-            } // catch            
-        } // cmdMute_Click
+        #region Logging
 
         /// <summary>
         /// Generates trace strings and writes them to the debugger.
@@ -1336,5 +1353,7 @@ namespace Rumble
             TraceString = TraceString.Substring(0, TraceString.LastIndexOf(@"|" + CurrentMethod.Name));
         } // MethodEndLogging
 
+        #endregion // Logging
+        
     } // public partial class Form1 : Form
 } // namespace Rumble
