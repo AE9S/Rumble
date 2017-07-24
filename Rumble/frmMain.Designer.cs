@@ -42,6 +42,9 @@
             this.label3 = new System.Windows.Forms.Label();
             this.txtTimerInterval = new System.Windows.Forms.TextBox();
             this.lblWavIDFile = new System.Windows.Forms.Label();
+            this.cmdSelectConfigLocation = new System.Windows.Forms.Button();
+            this.lblConfigFilePath = new System.Windows.Forms.Label();
+            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.SuspendLayout();
             // 
             // textBox1
@@ -161,14 +164,36 @@
             this.lblWavIDFile.AutoSize = true;
             this.lblWavIDFile.Location = new System.Drawing.Point(384, 63);
             this.lblWavIDFile.Name = "lblWavIDFile";
-            this.lblWavIDFile.Size = new System.Drawing.Size(0, 13);
+            this.lblWavIDFile.Size = new System.Drawing.Size(78, 13);
             this.lblWavIDFile.TabIndex = 12;
+            this.lblWavIDFile.Text = "no file selected";
+            // 
+            // cmdSelectConfigLocation
+            // 
+            this.cmdSelectConfigLocation.Location = new System.Drawing.Point(303, 88);
+            this.cmdSelectConfigLocation.Name = "cmdSelectConfigLocation";
+            this.cmdSelectConfigLocation.Size = new System.Drawing.Size(75, 23);
+            this.cmdSelectConfigLocation.TabIndex = 13;
+            this.cmdSelectConfigLocation.Text = "Sel Config";
+            this.cmdSelectConfigLocation.UseVisualStyleBackColor = true;
+            this.cmdSelectConfigLocation.Click += new System.EventHandler(this.cmdSelectConfigLocation_Click);
+            // 
+            // lblConfigFilePath
+            // 
+            this.lblConfigFilePath.AutoSize = true;
+            this.lblConfigFilePath.Location = new System.Drawing.Point(387, 88);
+            this.lblConfigFilePath.Name = "lblConfigFilePath";
+            this.lblConfigFilePath.Size = new System.Drawing.Size(86, 13);
+            this.lblConfigFilePath.TabIndex = 14;
+            this.lblConfigFilePath.Text = "no path selected";
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 292);
+            this.Controls.Add(this.lblConfigFilePath);
+            this.Controls.Add(this.cmdSelectConfigLocation);
             this.Controls.Add(this.lblWavIDFile);
             this.Controls.Add(this.txtTimerInterval);
             this.Controls.Add(this.label3);
@@ -205,6 +230,9 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtTimerInterval;
         private System.Windows.Forms.Label lblWavIDFile;
+        private System.Windows.Forms.Button cmdSelectConfigLocation;
+        private System.Windows.Forms.Label lblConfigFilePath;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
     }
 }
 

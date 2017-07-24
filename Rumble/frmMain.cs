@@ -444,6 +444,7 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 openFileDialog1.Title = "Select the ID .wav file";
+                openFileDialog1.Filter = @"Wav files(*.wav)|*.wav";
                 openFileDialog1.ShowDialog();
                 IDWaveFile = openFileDialog1.FileName;
                 lblWavIDFile.Text = IDWaveFile;
@@ -484,6 +485,27 @@ namespace Rumble
             } // catch            
         } // cmdMute_Click
 
+        private void cmdSelectConfigLocation_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // logging
+                MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+                MethodBeginLogging(myMethod);
+                folderBrowserDialog1.Description = "Select the Config File location";
+                folderBrowserDialog1.ShowDialog();
+                ConfigFilePath = folderBrowserDialog1.SelectedPath;
+                lblConfigFilePath.Text = ConfigFilePath;
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch
+        } // cmdSelectConfigLocation_Click
+        
         #endregion // Event Handlers
 
 
