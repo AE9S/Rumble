@@ -32,6 +32,8 @@ namespace Rumble
         public string UserName;
         public string Password;
         public string ChannelPath;
+        public string ServerNickname;
+        public string ChannelNickname;
     } // RumbleConfigLine
 
       public partial class frmMain : Form
@@ -64,6 +66,7 @@ namespace Rumble
             isChannelChangeFinal
         } // DTMFCommandStates
         DTMFCommandStates MyState;
+        // TODO: put this on UI
         string ConfigFilePath = @"C:\Users\kb\Desktop\";
         string MumbleExePath = Environment.ExpandEnvironmentVariables(@"%PROGRAMFILES%\mumble\mumble.exe");
         bool IsMuted = false;
@@ -516,7 +519,29 @@ namespace Rumble
                 {
                     string mumbleURI = BuildMumbleURI(matchingConfig);
                     LaunchMumble(mumbleURI);
-                    SpeakIt(string.Format("channel changed to server {0}, channel {1}.", ServerNumber, ChannelNumber));
+
+                    string serverName = string.Empty;
+                    string channelName = string.Empty;
+
+                    if (!string.IsNullOrEmpty(matchingConfig.ServerNickname))
+                    {
+                        serverName = matchingConfig.ServerNickname;
+                    } // if
+                    else
+                    {
+                        serverName = string.Format("server {0}", ServerNumber);
+                    } // else
+
+                    if (!string.IsNullOrEmpty(matchingConfig.ChannelNickname))
+                    {
+                        channelName = matchingConfig.ChannelNickname;
+                    } // if
+                    else
+                    {
+                        channelName = string.Format("channel {0}", ChannelNumber);
+                    } // else
+
+                    SpeakIt(string.Format("channel changed to {0}, {1}.", serverName, channelName));
                 } // if
                 else
                 {
@@ -891,6 +916,8 @@ namespace Rumble
                     thisRumbleConfigLine.UserName = dataRow[4];
                     thisRumbleConfigLine.Password = dataRow[5];
                     thisRumbleConfigLine.ChannelPath = dataRow[6];
+                    thisRumbleConfigLine.ServerNickname = dataRow[7];
+                    thisRumbleConfigLine.ChannelNickname = dataRow[8];
                     MyConfigs.Add(thisRumbleConfigLine);
                 } // while
 
