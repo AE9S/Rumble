@@ -1355,5 +1355,6 @@ namespace Rumble
 
         #endregion // Logging
         
-    } // public partial class Form1 : Form
+    } // //frmMain
+
 } // namespace Rumble
