@@ -561,7 +561,7 @@ namespace Rumble
                                 break;
                         } // switch
                         break;
-                    case "01":
+                    case "01": // Deaf / Undeaf
                         switch (AdminSettingValue)
                         {
                             case "0":
@@ -767,6 +767,7 @@ namespace Rumble
                 cmdListen.Enabled = true;
                 analyzer.StopCapturing();
                 StopIDTimerJob();
+                KillMumble();
 
                 // logging
                 MethodEndLogging(myMethod);
@@ -1219,6 +1220,45 @@ namespace Rumble
                 UtilityMethods.ExceptionHandler(ex, TraceString);
             } // catch
         } // cmdSelectIDFile_Click
+
+        private void KillMumble()
+        {
+            MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
+            Process[] procs = null;
+
+            try
+            {
+                // logging
+                MethodBeginLogging(myMethod);
+                
+                if (procs != null)
+                {
+                    procs = Process.GetProcessesByName("mumble");
+                    Process mumbleProc = procs[0];
+                    if (!mumbleProc.HasExited)
+                    {
+                        mumbleProc.Kill();
+                    } // if
+                } // if
+            } // try
+            catch (Exception ex)
+            {
+                UtilityMethods.ExceptionHandler(ex, TraceString);
+            } // catch            
+            finally
+            {
+                if (procs != null)
+                {
+                    foreach (Process p in procs)
+                    {
+                        p.Dispose();
+                    } // foreach
+                } // if
+
+                // logging
+                MethodEndLogging(myMethod);
+            } // finally
+        } // KillMumble
 
         private void cmdMute_Click(object sender, EventArgs e)
         {
