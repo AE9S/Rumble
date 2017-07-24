@@ -111,6 +111,7 @@ namespace Rumble
                 cmdStop.Enabled = true;
                 StartIDTimerJob();
                 analyzer.StartCapturing();
+                SpeakIt("listening");
 
                 // logging
                 MethodEndLogging(myMethod);
@@ -498,6 +499,7 @@ namespace Rumble
                 if (ChannelNumber == "0")
                 {
                     LaunchMumble(ResetURI);
+                    Thread.Sleep(500);
                 } // if
 
                 RumbleConfigLine matchingConfig = new RumbleConfigLine();
