@@ -1016,7 +1016,7 @@ namespace Rumble
                 // clear out old config
                 MyConfigs = new List<RumbleConfigLine>();
 
-                string configFileName = string.Format(@"rumbleConfig_{0}.csv", ConfigNumber);
+                string configFileName = string.Format(@"\rumbleConfig_{0}.csv", ConfigNumber);
                 string filePath = string.Format("{0}{1}", ConfigFilePath, configFileName);
 
                 StreamReader sr = new StreamReader(filePath);
