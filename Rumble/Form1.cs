@@ -985,10 +985,10 @@ namespace Rumble
                 }
                 var waveOut = new WaveOut();
                 waveOut.DeviceNumber = DeviceOutNo;
-                waveOut.NumberOfBuffers = 100000;
+                waveOut.NumberOfBuffers = 500000;
                 waveOut.Init(provider);
                 waveOut.Play();
-                Thread.Sleep(1500);
+                Thread.Sleep(2000);
                 waveOut.Dispose();
                 
                 // logging
