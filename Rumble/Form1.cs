@@ -43,8 +43,8 @@ namespace Rumble
         LiveAudioDtmfAnalyzer analyzer;
         string CurrentDTMFCommand = string.Empty;
         string FinalDTMFCommand = string.Empty;
-        System.Diagnostics.Process currentMumbleProcess;
-        System.Diagnostics.ProcessStartInfo currentMumbleProcessStartInfo;
+        Process currentMumbleProcess;
+        ProcessStartInfo currentMumbleProcessStartInfo;
         string ResetURI = @"mumble://noUser@0.0.0.0:0/";
         int DeviceInNo = 0;
         int DeviceOutNo = 0;
@@ -86,6 +86,7 @@ namespace Rumble
 
                 InitializeComponent();
                 SetText("starting...");
+                lblWavIDFile.Text = IDWaveFile;
                 PopulateWaveInDevices();
                 PopulateWaveOutDevices();
 
@@ -608,7 +609,7 @@ namespace Rumble
                         break;
                 } // switch
 
-                SpeakIt(string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
+                //SpeakIt(string.Format("changed admin setting {0} to value {1}", AdminSetting, AdminSettingValue));
 
                 // logging
                 MethodEndLogging(myMethod);
@@ -985,10 +986,9 @@ namespace Rumble
                 }
                 var waveOut = new WaveOut();
                 waveOut.DeviceNumber = DeviceOutNo;
-                waveOut.NumberOfBuffers = 500000;
+                waveOut.NumberOfBuffers = 250000;
                 waveOut.Init(provider);
                 waveOut.Play();
-                Thread.Sleep(2000);
                 waveOut.Dispose();
                 
                 // logging
@@ -1215,9 +1215,8 @@ namespace Rumble
                 analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
                 analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
                 analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
-                cmdStop.Enabled = false;
-
-
+                cmdListen.Enabled = true;
+                
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -1238,7 +1237,8 @@ namespace Rumble
                 openFileDialog1.Title = "Select the ID .wav file";
                 openFileDialog1.ShowDialog();
                 IDWaveFile = openFileDialog1.FileName;
-                
+                lblWavIDFile.Text = IDWaveFile;
+
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -1257,10 +1257,10 @@ namespace Rumble
             {
                 // logging
                 MethodBeginLogging(myMethod);
-                
-                if (procs != null)
-                {
-                    procs = Process.GetProcessesByName("mumble");
+
+                procs = Process.GetProcessesByName("mumble");
+                if (procs.Count<object>() > 0)
+                {                    
                     Process mumbleProc = procs[0];
                     if (!mumbleProc.HasExited)
                     {

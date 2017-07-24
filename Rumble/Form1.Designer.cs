@@ -41,6 +41,7 @@
             this.cmdSelectIDFile = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.txtTimerInterval = new System.Windows.Forms.TextBox();
+            this.lblWavIDFile = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // textBox1
@@ -54,6 +55,7 @@
             // 
             // cmdListen
             // 
+            this.cmdListen.Enabled = false;
             this.cmdListen.Location = new System.Drawing.Point(12, 261);
             this.cmdListen.Name = "cmdListen";
             this.cmdListen.Size = new System.Drawing.Size(75, 23);
@@ -64,6 +66,7 @@
             // 
             // cmdStop
             // 
+            this.cmdStop.Enabled = false;
             this.cmdStop.Location = new System.Drawing.Point(667, 261);
             this.cmdStop.Name = "cmdStop";
             this.cmdStop.Size = new System.Drawing.Size(75, 23);
@@ -153,11 +156,20 @@
             this.txtTimerInterval.TabIndex = 11;
             this.txtTimerInterval.Text = "600";
             // 
+            // lblWavIDFile
+            // 
+            this.lblWavIDFile.AutoSize = true;
+            this.lblWavIDFile.Location = new System.Drawing.Point(384, 63);
+            this.lblWavIDFile.Name = "lblWavIDFile";
+            this.lblWavIDFile.Size = new System.Drawing.Size(0, 13);
+            this.lblWavIDFile.TabIndex = 12;
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 292);
+            this.Controls.Add(this.lblWavIDFile);
             this.Controls.Add(this.txtTimerInterval);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.cmdSelectIDFile);
@@ -192,6 +204,7 @@
         private System.Windows.Forms.Button cmdSelectIDFile;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtTimerInterval;
+        private System.Windows.Forms.Label lblWavIDFile;
     }
 }
 
