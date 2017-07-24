@@ -120,7 +120,7 @@ namespace Rumble
                 cmdStop.Enabled = true;
                 StartIDTimerJob();
                 analyzer.StartCapturing();
-                SpeakIt("listening");
+                SpeakIt("Now listening for commands.");
 
                 // logging
                 MethodEndLogging(myMethod);
@@ -658,7 +658,7 @@ namespace Rumble
                         channelName = string.Format("channel {0}", ChannelNumber);
                     } // else
 
-                    SpeakIt(string.Format("channel changed to {0}, {1}.", serverName, channelName));
+                    SpeakIt(string.Format("Channel changed to {0}, {1}.", serverName, channelName));
                 } // if
                 else
                 {
@@ -1061,19 +1061,19 @@ namespace Rumble
                 MethodBase myMethod = new StackTrace().GetFrame(0).GetMethod();
                 MethodBeginLogging(myMethod);
 
-                //SetText(string.Format("speaking text {0}", TextToSpeak));
                 IWaveProvider provider = null;
                 var stream = new MemoryStream();
                 using (var synth = new SpeechSynthesizer())
                 {
-                    //synth.SetOutputToAudioStream(stream,
-                    //new SpeechAudioFormatInfo(44100, AudioBitsPerSample.Eight, AudioChannel.Mono));
+                    synth.SetOutputToAudioStream(stream,
+                    new SpeechAudioFormatInfo(28000, AudioBitsPerSample.Eight, AudioChannel.Mono));
 
-                    synth.SetOutputToWaveStream(stream);
+                    //synth.SetOutputToWaveStream(stream);
                     synth.Rate = -1;
+                    
                     synth.Speak(TextToSpeak);
                     stream.Seek(0, SeekOrigin.Begin);
-                    provider = new RawSourceWaveStream(stream, new WaveFormat(22000, 16, 1));
+                    provider = new RawSourceWaveStream(stream, new WaveFormat(28000, 8, 1));
                 }
                 var waveOut = new WaveOut();
                 waveOut.DeviceNumber = DeviceOutNo;
