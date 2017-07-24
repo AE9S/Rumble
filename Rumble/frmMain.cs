@@ -72,8 +72,6 @@ namespace Rumble
         // TODO: put this on UI
         string ConfigFilePath = string.Empty;
         string MumbleExePath = Environment.ExpandEnvironmentVariables(@"%PROGRAMFILES%\mumble\mumble.exe");
-        bool IsMuted = false;
-        bool IsDeaf = false;
         bool StayMuted = false;
         string IDWaveFile = string.Empty;
         int IDTimerInterval = 6000;
@@ -1178,8 +1176,7 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 IssueCommand(@MumbleExePath, @"rpc mute");
-                IsMuted = true;
-
+                
                 // logging
                 MethodEndLogging(myMethod);
             } // try
@@ -1200,7 +1197,6 @@ namespace Rumble
                 if (!StayMuted)
                 {
                     IssueCommand(@MumbleExePath, @"rpc unmute");
-                    IsMuted = false;
                 } // if
 
                 // logging
@@ -1221,7 +1217,6 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 IssueCommand(@MumbleExePath, @"rpc deaf");
-                IsDeaf = true;
 
                 // logging
                 MethodEndLogging(myMethod);
@@ -1241,7 +1236,6 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 IssueCommand(@MumbleExePath, @"rpc undeaf");
-                IsDeaf = false;
 
                 // logging
                 MethodEndLogging(myMethod);
