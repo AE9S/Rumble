@@ -466,8 +466,12 @@ namespace Rumble
                 MethodBeginLogging(myMethod);
 
                 StringBuilder mySB = new StringBuilder();
-                mySB.AppendLine(string.Format("Selected Input Device is {0} using Device Number {1}", comboWaveIn.SelectedItem, comboWaveIn.SelectedValue.ToString()));
-                mySB.AppendLine(string.Format("Selected Output Device is {0} using Device Number {1}", comboWaveOut.SelectedItem, comboWaveOut.SelectedValue.ToString()));
+                mySB.AppendLine(string.Format("Selected Input Device is {0} using Device Number {1}", 
+                    comboWaveIn.SelectedItem, 
+                    comboWaveIn.SelectedValue.ToString()));
+                mySB.AppendLine(string.Format("Selected Output Device is {0} using Device Number {1}", 
+                    comboWaveOut.SelectedItem, 
+                    comboWaveOut.SelectedValue.ToString()));
 
                 MessageBox.Show(mySB.ToString());
 
