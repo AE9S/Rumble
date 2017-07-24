@@ -70,7 +70,7 @@ namespace Rumble
         } // DTMFCommandStates
         DTMFCommandStates MyState;
         // TODO: put this on UI
-        string ConfigFilePath = @"C:\Users\kb\Desktop\";
+        string ConfigFilePath = string.Empty;
         string MumbleExePath = Environment.ExpandEnvironmentVariables(@"%PROGRAMFILES%\mumble\mumble.exe");
         bool IsMuted = false;
         bool IsDeaf = false;
@@ -416,11 +416,14 @@ namespace Rumble
 
                 SetText(string.Format("DeviceIn set to {0} -- DeviceOut set to {1}", DeviceInNo.ToString(), DeviceOutNo.ToString()));
 
+                micIn.BufferMilliseconds = 100;
+                micIn.NumberOfBuffers = 3;
                 micIn.DeviceNumber = DeviceInNo;
+
                 MyState = DTMFCommandStates.ignore;
                 SpeakIt("Welcome to Rumble!");
                 LoadConfig("0");
-
+                
                 analyzer = new LiveAudioDtmfAnalyzer(micIn, forceMono: false);
                 analyzer.DtmfToneStarted += Analyzer_DtmfToneStarted;
                 analyzer.DtmfToneStopped += Analyzer_DtmfToneStopped;
@@ -1107,7 +1110,7 @@ namespace Rumble
                 waveOut.Init(provider);
                 waveOut.Play();
                 waveOut.Dispose();
-
+                
                 // logging
                 MethodEndLogging(myMethod);
             } // try
